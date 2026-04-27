@@ -134,56 +134,109 @@ if (session_status() === PHP_SESSION_NONE) {
 </head>
 <body>
 
+<!-- ====== ADMIN TOP BAR (admin only) ====== -->
+<?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
+<div style="background:#003580; color:#fff; font-size:12px; font-weight:600; text-align:center; padding:5px 0; letter-spacing:.5px; position:fixed; top:0; width:100%; z-index:1050;">
+    <i class="bi bi-shield-fill-check me-2"></i>ADMIN PANEL &nbsp;—&nbsp; Changes made here affect all users
+</div>
+<style>body { padding-top: 92px; } .navbar-trip { top: 28px; }</style>
+<?php endif; ?>
+
 <!-- ====== NAVBAR ====== -->
 <nav class="navbar navbar-expand-lg navbar-trip fixed-top">
     <div class="container">
 
-        <a class="navbar-brand" href="/dbweb/index.php">
-            ✈ trip<span>.</span>com
-        </a>
+        <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
+            <a class="navbar-brand" href="/dbweb/admin/dashboard.php">
+                ✈ trip<span>.</span>com
+                <span style="font-size:11px; font-weight:700; background:#003580; color:#fff; border-radius:4px; padding:2px 7px; margin-left:6px; vertical-align:middle; letter-spacing:.4px;">ADMIN</span>
+            </a>
+        <?php else: ?>
+            <a class="navbar-brand" href="/dbweb/index.php">
+                ✈ trip<span>.</span>com
+            </a>
+        <?php endif; ?>
 
         <div class="ms-auto d-flex align-items-center gap-2">
+
             <?php if (isset($_SESSION['user_id'])): ?>
 
-                <a href="/dbweb/flights/search.php" class="nav-link">
-                    <i class="bi bi-airplane me-1"></i>Flights
-                </a>
-
-                <a href="/dbweb/user/dashboard.php" class="nav-link">
-                    <i class="bi bi-ticket-detailed me-1"></i>My Bookings
-                </a>
-
                 <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
+                    <!-- ── ADMIN NAV ── -->
                     <a href="/dbweb/admin/dashboard.php" class="nav-link">
-                        <i class="bi bi-shield-check me-1"></i>Admin
+                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
                     </a>
-                <?php endif; ?>
+                    <a href="/dbweb/admin/manage_flights.php" class="nav-link">
+                        <i class="bi bi-airplane me-1"></i>Flights
+                    </a>
+                    <a href="/dbweb/admin/manage_bookings.php" class="nav-link">
+                        <i class="bi bi-journal-text me-1"></i>Bookings
+                    </a>
 
-                <div class="dropdown ms-2">
-                    <button class="btn btn-trip dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-1"></i>
-                        <?= htmlspecialchars($_SESSION['user_name'] ?? 'User') ?>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
-                        <li class="px-3 py-2 text-muted" style="font-size:12px;">
-                            <?= htmlspecialchars($_SESSION['user_email'] ?? '') ?>
-                        </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item" href="/dbweb/user/dashboard.php">
-                            <i class="bi bi-ticket-detailed me-2"></i>My Bookings
-                        </a></li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item text-danger" href="/dbweb/auth/logout.php">
-                            <i class="bi bi-box-arrow-right me-2"></i>Sign Out
-                        </a></li>
-                    </ul>
-                </div>
+                    <div class="dropdown ms-2">
+                        <button class="btn dropdown-toggle" data-bs-toggle="dropdown"
+                                style="background:#003580; color:#fff; border:none; font-size:14px; font-weight:600; padding:8px 16px; border-radius:6px;">
+                            <i class="bi bi-shield-check me-1"></i>
+                            <?= htmlspecialchars($_SESSION['user_name'] ?? 'Admin') ?>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                            <li class="px-3 pt-2 pb-1">
+                                <div style="font-size:13px; font-weight:600;"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></div>
+                                <div style="font-size:12px; color:#aaa;"><?= htmlspecialchars($_SESSION['user_email'] ?? '') ?></div>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item" href="/dbweb/admin/dashboard.php">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="/dbweb/admin/manage_flights.php">
+                                <i class="bi bi-airplane me-2"></i>Manage Flights
+                            </a></li>
+                            <li><a class="dropdown-item" href="/dbweb/admin/manage_bookings.php">
+                                <i class="bi bi-journal-text me-2"></i>Manage Bookings
+                            </a></li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item text-danger" href="/dbweb/auth/logout.php">
+                                <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                            </a></li>
+                        </ul>
+                    </div>
+
+                <?php else: ?>
+                    <!-- ── USER NAV ── -->
+                    <a href="/dbweb/flights/search.php" class="nav-link">
+                        <i class="bi bi-airplane me-1"></i>Flights
+                    </a>
+                    <a href="/dbweb/user/dashboard.php" class="nav-link">
+                        <i class="bi bi-ticket-detailed me-1"></i>My Bookings
+                    </a>
+
+                    <div class="dropdown ms-2">
+                        <button class="btn btn-trip dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <?= htmlspecialchars($_SESSION['user_name'] ?? 'User') ?>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                            <li class="px-3 pt-2 pb-1">
+                                <div style="font-size:13px; font-weight:600;"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></div>
+                                <div style="font-size:12px; color:#aaa;"><?= htmlspecialchars($_SESSION['user_email'] ?? '') ?></div>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item" href="/dbweb/user/dashboard.php">
+                                <i class="bi bi-ticket-detailed me-2"></i>My Bookings
+                            </a></li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item text-danger" href="/dbweb/auth/logout.php">
+                                <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                            </a></li>
+                        </ul>
+                    </div>
+                <?php endif; ?>
 
             <?php else: ?>
                 <a href="/dbweb/auth/login.php"    class="btn btn-trip-outline">Sign In</a>
                 <a href="/dbweb/auth/register.php" class="btn btn-trip ms-1">Register</a>
             <?php endif; ?>
-        </div>
 
+        </div>
     </div>
 </nav>

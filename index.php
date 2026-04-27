@@ -2,6 +2,10 @@
 session_start();
 require_once 'config/db.php';
 require_once 'config/airports.php';
+if (($_SESSION['role'] ?? '') === 'admin') {
+    header('Location: /dbweb/admin/dashboard.php');
+    exit();
+}
 $title = 'trip.com — Book Cheap Flights';
 include 'layout/layout.php';
 ?>

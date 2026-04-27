@@ -7,6 +7,10 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: /dbweb/auth/login.php');
     exit();
 }
+if (($_SESSION['role'] ?? '') === 'admin') {
+    header('Location: /dbweb/admin/dashboard.php');
+    exit();
+}
 
 $userId = $_SESSION['user_id'];
 
@@ -14,9 +18,10 @@ $userId = $_SESSION['user_id'];
 if (isset($_POST['cancel_booking'])) {
     $bId = (int)$_POST['booking_id'];
 
-    // Verify ownership and get flight IDs to restore seats
+    // Verify ownership; get one row per flight leg so all seats are restored on cancel
     $get = $conn->prepare("
-        SELECT bk.Book_ID, bk.Book_Status, bd.Bokde_FlghtID, COUNT(bd.Bokde_ID) AS pax_count
+        SELECT bk.Book_ID, bk.Book_Status, bd.Bokde_FlghtID,
+               COUNT(DISTINCT bd.Bokde_Passenger) AS pax_count
         FROM Booking bk
         JOIN Bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
         WHERE bk.Book_ID = ? AND bk.Book_UserID = ?
@@ -24,13 +29,16 @@ if (isset($_POST['cancel_booking'])) {
     ");
     $get->bind_param('ii', $bId, $userId);
     $get->execute();
-    $bRow = $get->get_result()->fetch_assoc();
+    $legRows = $get->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    if ($bRow && $bRow['Book_Status'] === 'CONFIRMED') {
+    if (!empty($legRows) && $legRows[0]['Book_Status'] === 'CONFIRMED') {
         $conn->begin_transaction();
         try {
             $conn->query("UPDATE Booking SET Book_Status='CANCELLED', Book_Pay='REFUNDED' WHERE Book_ID=$bId");
-            $conn->query("UPDATE Flight SET Flght_SeatAvail = Flght_SeatAvail + {$bRow['pax_count']} WHERE Flght_ID = {$bRow['Bokde_FlghtID']}");
+            // Restore seats for every flight leg (handles both one-way and round trip)
+            foreach ($legRows as $leg) {
+                $conn->query("UPDATE Flight SET Flght_SeatAvail = Flght_SeatAvail + {$leg['pax_count']} WHERE Flght_ID = {$leg['Bokde_FlghtID']}");
+            }
             $conn->query("UPDATE Payment SET Paymt_Status='REFUNDED' WHERE Paymt_BookID=$bId");
             $conn->commit();
             $_SESSION['flash_success'] = 'Booking cancelled successfully.';
@@ -43,24 +51,27 @@ if (isset($_POST['cancel_booking'])) {
     exit();
 }
 
-// Fetch user's bookings (one row per booking; aggregate passenger count)
+// Fetch user's bookings — one row per booking, showing outbound (earliest) leg route
 $stmt = $conn->prepare("
     SELECT bk.Book_ID, bk.Book_Confirm, bk.Book_Date, bk.Book_Status, bk.Book_Total, bk.Book_Pay,
-           MIN(f.Flght_No)         AS Flght_No,
-           MIN(f.Flght_DepartDate) AS Flght_DepartDate,
-           MIN(f.Flght_ArriveDate) AS Flght_ArriveDate,
-           MIN(f.Flght_Depart)     AS Flght_Depart,
-           MIN(f.Flght_Arrival)    AS Flght_Arrival,
-           MIN(a.Airln_Name)       AS Airln_Name,
-           MIN(a.Airln_Code)       AS Airln_Code,
-           MIN(bd.Bokde_SeatClass) AS Bokde_SeatClass,
-           COUNT(bd.Bokde_ID)      AS pax_count
+           fl.Flght_No, fl.Flght_DepartDate, fl.Flght_ArriveDate, fl.Flght_Depart, fl.Flght_Arrival,
+           al.Airln_Name, al.Airln_Code,
+           MIN(bd.Bokde_SeatClass)         AS Bokde_SeatClass,
+           COUNT(DISTINCT bd.Bokde_Passenger) AS pax_count,
+           COUNT(DISTINCT bd.Bokde_FlghtID)   AS leg_count
     FROM Booking bk
-    JOIN Bookingdetails bd ON bd.Bokde_BookID  = bk.Book_ID
-    JOIN Flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
-    JOIN Airliner a        ON a.Airln_ID       = f.Flght_AirlnID
+    JOIN Bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
+    JOIN Flight fl ON fl.Flght_ID = (
+        SELECT bd2.Bokde_FlghtID
+        FROM Bookingdetails bd2
+        JOIN Flight f2 ON f2.Flght_ID = bd2.Bokde_FlghtID
+        WHERE bd2.Bokde_BookID = bk.Book_ID
+        ORDER BY f2.Flght_DepartDate ASC
+        LIMIT 1
+    )
+    JOIN Airliner al ON al.Airln_ID = fl.Flght_AirlnID
     WHERE bk.Book_UserID = ?
-    GROUP BY bk.Book_ID
+    GROUP BY bk.Book_ID, fl.Flght_ID
     ORDER BY bk.Book_Date DESC
 ");
 $stmt->bind_param('i', $userId);
@@ -133,6 +144,9 @@ include '../layout/layout.php';
                                 <div>
                                     <div class="fw-bold" style="font-size:16px;">
                                         <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
+                                        <?php if (($b['leg_count'] ?? 1) > 1): ?>
+                                            <span class="badge badge-trip-orange ms-1 px-2" style="font-size:10px; vertical-align:middle;">Round Trip</span>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="text-muted" style="font-size:12px;">
                                         <?= $b['Flght_Depart'] ?> → <?= $b['Flght_Arrival'] ?>
