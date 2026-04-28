@@ -97,6 +97,17 @@ include '../layout/layout.php';
 ?>
 
 <style>
+/* ── Sort bar ── */
+.sort-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.sort-btn {
+    padding:5px 16px; font-size:12px; font-weight:600; border-radius:20px; cursor:pointer;
+    border:1.5px solid #ddd; background:#fff; color:#6B6B6B; transition:all 0.15s;
+}
+.sort-btn.active, .sort-btn:hover { background:#0086FF; color:#fff; border-color:#0086FF; }
+.seats-warning { color:#d93025; font-size:12px; font-weight:600; }
+.seats-ok      { color:#aaa; font-size:12px; }
+
+/* ── Step pills ── */
 .step-pill {
     display: inline-flex;
     align-items: center;
@@ -289,6 +300,13 @@ include '../layout/layout.php';
                 <p style="font-size:14px;">Try changing the return date in the search bar above.</p>
             </div>
         <?php else: ?>
+            <div class="sort-bar">
+                <span style="font-size:12px; color:#aaa; font-weight:600;">Sort:</span>
+                <button class="sort-btn active" onclick="sortFlights('cheapest','rt2-list',this)">Cheapest</button>
+                <button class="sort-btn" onclick="sortFlights('earliest','rt2-list',this)">Earliest</button>
+                <button class="sort-btn" onclick="sortFlights('latest','rt2-list',this)">Latest</button>
+            </div>
+            <div id="rt2-list">
             <?php foreach ($returnFlights as $f):
                 $retPricePerPax = (float)$f['Flght_Fare'] * $multiplier;
                 $combinedTotal  = ($outPricePerPax + $retPricePerPax) * $passengers;
@@ -324,9 +342,16 @@ include '../layout/layout.php';
                                 <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($f['Flght_Arrival']) ?></div>
                             </div>
                         </div>
-                        <div class="mt-2" style="font-size:12px; color:#aaa;">
-                            <?= htmlspecialchars($toCity) ?> → <?= htmlspecialchars($fromCity) ?>
-                            &nbsp;·&nbsp; <?= $f['Flght_SeatAvail'] ?> seats left
+                        <div class="mt-2">
+                            <span style="font-size:12px; color:#aaa;">
+                                <?= htmlspecialchars($toCity) ?> → <?= htmlspecialchars($fromCity) ?>
+                            </span>
+                            &nbsp;·&nbsp;
+                            <?php if ($f['Flght_SeatAvail'] <= 7): ?>
+                                <span class="seats-warning"><i class="bi bi-exclamation-circle me-1"></i>Only <?= $f['Flght_SeatAvail'] ?> seats left!</span>
+                            <?php else: ?>
+                                <span class="seats-ok"><?= $f['Flght_SeatAvail'] ?> seats left</span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="col-md-4 py-3 px-4 text-end" style="border-left:1px solid #f0f0f0;">
@@ -344,6 +369,7 @@ include '../layout/layout.php';
                 </div>
             </div>
             <?php endforeach; ?>
+            </div><!-- #rt2-list -->
         <?php endif; ?>
 
     <?php
@@ -381,11 +407,21 @@ include '../layout/layout.php';
                 <p style="font-size:14px;">Try a different date or adjust your search.</p>
             </div>
         <?php else: ?>
+            <div class="sort-bar">
+                <span style="font-size:12px; color:#aaa; font-weight:600;">Sort:</span>
+                <button class="sort-btn active" onclick="sortFlights('cheapest','rt1-list',this)">Cheapest</button>
+                <button class="sort-btn" onclick="sortFlights('earliest','rt1-list',this)">Earliest</button>
+                <button class="sort-btn" onclick="sortFlights('latest','rt1-list',this)">Latest</button>
+            </div>
+            <div id="rt1-list">
             <?php foreach ($flights as $f):
                 $pricePerPax = (float)$f['Flght_Fare'] * $multiplier;
+                $lowSeats    = $f['Flght_SeatAvail'] <= 7;
                 $selectUrl = '/dbweb/flights/search.php?' . $baseParams . '&out=' . $f['Flght_ID'];
             ?>
-            <div class="trip-card mb-3 p-0 overflow-hidden">
+            <div class="trip-card mb-3 p-0 overflow-hidden"
+                 data-price="<?= $pricePerPax ?>"
+                 data-time="<?= strtotime($f['Flght_DepartDate']) ?>">
                 <div class="row g-0 align-items-center">
                     <div class="col-md-2 text-center py-3 px-3" style="border-right:1px solid #f0f0f0;">
                         <div style="font-size:22px; color:#0086FF; font-weight:800;"><?= htmlspecialchars($f['Airln_Code']) ?></div>
@@ -410,9 +446,16 @@ include '../layout/layout.php';
                                 <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($f['Flght_Arrival']) ?></div>
                             </div>
                         </div>
-                        <div class="mt-2" style="font-size:12px; color:#aaa;">
-                            <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
-                            &nbsp;·&nbsp; <?= $f['Flght_SeatAvail'] ?> seats left
+                        <div class="mt-2">
+                            <span style="font-size:12px; color:#aaa;">
+                                <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
+                            </span>
+                            &nbsp;·&nbsp;
+                            <?php if ($f['Flght_SeatAvail'] <= 7): ?>
+                                <span class="seats-warning"><i class="bi bi-exclamation-circle me-1"></i>Only <?= $f['Flght_SeatAvail'] ?> seats left!</span>
+                            <?php else: ?>
+                                <span class="seats-ok"><?= $f['Flght_SeatAvail'] ?> seats left</span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="col-md-4 py-3 px-4 text-end" style="border-left:1px solid #f0f0f0;">
@@ -426,6 +469,7 @@ include '../layout/layout.php';
                 </div>
             </div>
             <?php endforeach; ?>
+            </div><!-- #rt1-list -->
         <?php endif; ?>
 
     <?php
@@ -452,17 +496,27 @@ include '../layout/layout.php';
                 <p style="font-size:14px;">Try a different date or adjust your search.</p>
             </div>
         <?php else: ?>
+            <div class="sort-bar">
+                <span style="font-size:12px; color:#aaa; font-weight:600;">Sort:</span>
+                <button class="sort-btn active" onclick="sortFlights('cheapest','ow-list',this)">Cheapest</button>
+                <button class="sort-btn" onclick="sortFlights('earliest','ow-list',this)">Earliest</button>
+                <button class="sort-btn" onclick="sortFlights('latest','ow-list',this)">Latest</button>
+            </div>
+            <div id="ow-list">
             <?php foreach ($flights as $f):
                 $duration    = flightDuration($f['Flght_DepartDate'], $f['Flght_ArriveDate']);
                 $pricePerPax = (float)$f['Flght_Fare'] * $multiplier;
                 $totalPrice  = $pricePerPax * $passengers;
+                $lowSeats    = $f['Flght_SeatAvail'] <= 7;
                 $bookUrl = '/dbweb/flights/book.php?' . http_build_query([
                     'flight_id'  => $f['Flght_ID'],
                     'passengers' => $passengers,
                     'class'      => $class,
                 ]);
             ?>
-            <div class="trip-card mb-3 p-0 overflow-hidden">
+            <div class="trip-card mb-3 p-0 overflow-hidden"
+                 data-price="<?= $pricePerPax ?>"
+                 data-time="<?= strtotime($f['Flght_DepartDate']) ?>">
                 <div class="row g-0 align-items-center">
                     <div class="col-md-2 text-center py-3 px-3" style="border-right:1px solid #f0f0f0;">
                         <div style="font-size:22px; color:#0086FF; font-weight:800;"><?= htmlspecialchars($f['Airln_Code']) ?></div>
@@ -491,9 +545,16 @@ include '../layout/layout.php';
                                 <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($f['Flght_Arrival']) ?></div>
                             </div>
                         </div>
-                        <div class="mt-2" style="font-size:12px; color:#aaa;">
-                            <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
-                            &nbsp;·&nbsp; <?= $f['Flght_SeatAvail'] ?> seats left
+                        <div class="mt-2">
+                            <span style="font-size:12px; color:#aaa;">
+                                <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
+                            </span>
+                            &nbsp;·&nbsp;
+                            <?php if ($lowSeats): ?>
+                                <span class="seats-warning"><i class="bi bi-exclamation-circle me-1"></i>Only <?= $f['Flght_SeatAvail'] ?> seats left!</span>
+                            <?php else: ?>
+                                <span class="seats-ok"><?= $f['Flght_SeatAvail'] ?> seats left</span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="col-md-4 py-3 px-4 text-end" style="border-left:1px solid #f0f0f0;">
@@ -513,6 +574,7 @@ include '../layout/layout.php';
                 </div>
             </div>
             <?php endforeach; ?>
+            </div><!-- #ow-list -->
         <?php endif; ?>
 
     <?php endif; ?>
@@ -525,5 +587,25 @@ include '../layout/layout.php';
     <?php endif; ?>
 
 </div>
+
+<script>
+function sortFlights(mode, listId, btn) {
+    // Update active button style within the same sort bar
+    btn.closest('.sort-bar').querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const list  = document.getElementById(listId);
+    if (!list) return;
+    const cards = Array.from(list.querySelectorAll('.trip-card'));
+
+    cards.sort((a, b) => {
+        if (mode === 'cheapest') return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        if (mode === 'earliest') return parseInt(a.dataset.time)    - parseInt(b.dataset.time);
+        if (mode === 'latest')   return parseInt(b.dataset.time)    - parseInt(a.dataset.time);
+        return 0;
+    });
+    cards.forEach(c => list.appendChild(c));
+}
+</script>
 
 <?php include '../layout/footer.php'; ?>

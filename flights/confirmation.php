@@ -12,7 +12,8 @@ if (($_SESSION['role'] ?? '') === 'admin') {
     exit();
 }
 
-$ref = $_GET['ref'] ?? '';
+$ref        = $_GET['ref']   ?? '';
+$coinsEarned = (int)($_GET['coins'] ?? 0);
 if (!$ref) {
     header('Location: /dbweb/user/dashboard.php');
     exit();
@@ -42,7 +43,8 @@ if (empty($rows)) {
     exit();
 }
 
-$booking = $rows[0];
+$booking     = $rows[0];
+$isCancelled = $booking['Book_Status'] === 'CANCELLED';
 
 // Group rows by flight leg (Flght_ID), preserving departure-date order
 $legs = [];
@@ -75,23 +77,39 @@ include '../layout/layout.php';
 
 <div class="container py-5" style="max-width:800px;">
 
-    <!-- Success Banner -->
+    <!-- Status Banner -->
     <div class="text-center mb-4">
-        <div style="width:72px;height:72px;background:#e6f9f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px;color:#1a9e5c;">
-            ✓
-        </div>
-        <h3 class="fw-bold mb-1" style="color:#1a9e5c;">Booking Confirmed!</h3>
-        <p class="text-muted" style="font-size:15px;">
-            <?= $isRoundTrip ? 'Your round trip has been booked successfully. Have a great journey!' : 'Your flight has been booked successfully. Have a great trip!' ?>
-        </p>
+        <?php if ($isCancelled): ?>
+            <div style="width:72px;height:72px;background:#fff0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px;color:#d93025;">
+                ✕
+            </div>
+            <h3 class="fw-bold mb-1" style="color:#d93025;">Booking Cancelled</h3>
+            <p class="text-muted" style="font-size:15px;">
+                This booking has been cancelled. A refund has been initiated and may take a few business days to reflect.
+            </p>
+        <?php else: ?>
+            <div style="width:72px;height:72px;background:#e6f9f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px;color:#1a9e5c;">
+                ✓
+            </div>
+            <h3 class="fw-bold mb-1" style="color:#1a9e5c;">Booking Confirmed!</h3>
+            <p class="text-muted" style="font-size:15px;">
+                <?= $isRoundTrip ? 'Your round trip has been booked successfully. Have a great journey!' : 'Your flight has been booked successfully. Have a great trip!' ?>
+            </p>
+        <?php endif; ?>
     </div>
 
     <!-- Booking Reference Card -->
-    <div class="trip-card p-4 mb-4 text-center" style="background:linear-gradient(135deg,#003580,#0086FF); color:#fff;">
+    <div class="trip-card p-4 mb-4 text-center"
+         style="background:<?= $isCancelled ? 'linear-gradient(135deg,#555,#888)' : 'linear-gradient(135deg,#003580,#0086FF)' ?>; color:#fff;">
         <div style="font-size:13px; opacity:.8; text-transform:uppercase; letter-spacing:.6px;">Booking Reference</div>
         <div style="font-size:36px; font-weight:900; letter-spacing:4px; margin:8px 0;">
             <?= htmlspecialchars($booking['Book_Confirm']) ?>
         </div>
+        <?php if ($isCancelled): ?>
+            <div style="display:inline-block; background:rgba(255,255,255,0.2); border-radius:20px; padding:3px 16px; font-size:12px; font-weight:700; letter-spacing:1px; margin-bottom:6px;">
+                CANCELLED
+            </div><br>
+        <?php endif; ?>
         <div style="font-size:13px; opacity:.75;">
             Booked on <?= date('d M Y, H:i', strtotime($booking['Book_Date'])) ?>
             &nbsp;·&nbsp;
@@ -180,12 +198,22 @@ include '../layout/layout.php';
     <?php endforeach; ?>
 
     <!-- Total Price -->
-    <div class="trip-card p-4 mb-4">
+    <div class="trip-card p-4 mb-4" style="<?= $isCancelled ? 'border-left:4px solid #d93025;' : '' ?>">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <div class="fw-bold" style="font-size:16px;">Total Amount Paid</div>
+                <div class="fw-bold" style="font-size:16px;">
+                    <?= $isCancelled ? 'Total Amount (Refunded)' : 'Total Amount Paid' ?>
+                </div>
                 <div class="text-muted" style="font-size:13px;">
-                    Status: <span class="badge badge-trip-green px-2 py-1"><?= $booking['Book_Pay'] ?></span>
+                    Status:
+                    <?php
+                    $payBadge = match($booking['Book_Pay']) {
+                        'REFUNDED' => 'badge-trip-red',
+                        'PAID'     => 'badge-trip-green',
+                        default    => 'badge-trip-orange',
+                    };
+                    ?>
+                    <span class="badge <?= $payBadge ?> px-2 py-1"><?= htmlspecialchars($booking['Book_Pay']) ?></span>
                     <?php if ($booking['Paymt_Transaction']): ?>
                         &nbsp;·&nbsp; Ref: <?= htmlspecialchars($booking['Paymt_Transaction']) ?>
                     <?php endif; ?>
@@ -201,6 +229,63 @@ include '../layout/layout.php';
             </div>
         </div>
     </div>
+
+    <!-- Trip Coins earned -->
+    <?php if ($coinsEarned > 0): ?>
+    <div class="trip-card p-4 mb-4 d-flex align-items-center gap-3" style="background:linear-gradient(135deg,#fff8f0,#fff3e0); border-left:4px solid #FF7020;">
+        <div style="font-size:36px; line-height:1;">🪙</div>
+        <div>
+            <div class="fw-bold" style="font-size:15px; color:#FF7020;">+<?= $coinsEarned ?> Trip Coins Earned!</div>
+            <div style="font-size:13px; color:#6B6B6B;">
+                Coins are credited to your account after your trip. Check your balance on your
+                <a href="/dbweb/user/profile.php" style="color:#0086FF;">profile page</a>.
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Reminders / Cancellation info -->
+    <?php if ($isCancelled): ?>
+    <div class="trip-card p-4 mb-4" style="border-left:4px solid #d93025;">
+        <h6 class="fw-bold text-uppercase mb-3" style="font-size:11px; letter-spacing:.6px; color:#d93025;">Cancellation Details</h6>
+        <div class="row g-3" style="font-size:13px; color:#555;">
+            <div class="col-md-6 d-flex gap-2">
+                <i class="bi bi-arrow-counterclockwise" style="color:#d93025; flex-shrink:0; margin-top:2px;"></i>
+                <div>Your refund has been initiated. It may take <strong>3–7 business days</strong> to reflect in your original payment method.</div>
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <i class="bi bi-hash text-primary mt-1" style="flex-shrink:0;"></i>
+                <div>Quote reference <strong><?= htmlspecialchars($booking['Book_Confirm']) ?></strong> when following up on your refund with customer support.</div>
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <i class="bi bi-airplane" style="color:#0086FF; flex-shrink:0; margin-top:2px;"></i>
+                <div>Looking to rebook? Search for available flights and we'll have you on your way again.</div>
+            </div>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="trip-card p-4 mb-4">
+        <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:11px; letter-spacing:.6px;">Important Reminders</h6>
+        <div class="row g-3" style="font-size:13px; color:#555;">
+            <div class="col-md-6 d-flex gap-2">
+                <i class="bi bi-hash text-primary mt-1" style="flex-shrink:0;"></i>
+                <div>Quote your booking reference <strong><?= htmlspecialchars($booking['Book_Confirm']) ?></strong> in all communications with customer support.</div>
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <i class="bi bi-person-badge" style="color:#FF7020; flex-shrink:0; margin-top:2px;"></i>
+                <div>Passenger names must exactly match their <strong>government-issued ID or passport</strong>. Name discrepancies may require a fee or rebooking.</div>
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <i class="bi bi-sort-numeric-down text-success mt-1" style="flex-shrink:0;"></i>
+                <div>Flight tickets must be used <strong>in the sequence</strong> listed in your itinerary. Skipping a segment may void subsequent flights.</div>
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <i class="bi bi-arrow-counterclockwise text-primary mt-1" style="flex-shrink:0;"></i>
+                <div>Cancellations are subject to airline fare rules. Refunds may take several business days to reflect in your account.</div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Actions -->
     <div class="d-flex gap-3 justify-content-center flex-wrap">

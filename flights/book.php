@@ -64,6 +64,14 @@ $error    = '';
 $discount = 0.0;
 $promoId  = null;
 
+// Business rule: cannot book a flight that departs within 2 hours
+$departIn = strtotime($flight['Flght_DepartDate']) - time();
+if ($departIn < 7200) {
+    $_SESSION['flash_error'] = 'This flight departs within 2 hours and can no longer be booked online. Please contact the airline directly.';
+    header('Location: /dbweb/flights/search.php');
+    exit();
+}
+
 // ── Handle Booking Submission ─────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
 
@@ -169,8 +177,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
                 $conn->query("UPDATE Promotion SET Promo_Usage = Promo_Usage + 1 WHERE Promo_ID = $promoId");
             }
 
+            // Award Trip Coins: 1 per ₱100 spent — not awarded when a promo discount was applied
+            if (!$promoId) {
+                $coinsEarned = (int)floor($finalTotal / 100);
+                if ($coinsEarned > 0) {
+                    $conn->query("UPDATE User SET User_Loyalty = User_Loyalty + $coinsEarned WHERE User_ID = {$_SESSION['user_id']}");
+                }
+            }
+
             $conn->commit();
-            header("Location: /dbweb/flights/confirmation.php?ref=" . urlencode($bookConfirm));
+            header("Location: /dbweb/flights/confirmation.php?ref=" . urlencode($bookConfirm) . "&coins=" . ($coinsEarned ?? 0));
             exit();
 
         } catch (Exception $e) {
@@ -209,6 +225,24 @@ include '../layout/layout.php';
         <strong>Round Trip Booking</strong> — You're booking both outbound and return flights together.
     </div>
     <?php endif; ?>
+
+    <!-- Policy notices -->
+    <div class="trip-card p-3 mb-4" style="border-left:4px solid #FF7020;">
+        <div class="row g-2" style="font-size:13px; color:#555;">
+            <div class="col-md-4 d-flex gap-2 align-items-start">
+                <i class="bi bi-person-badge" style="color:#FF7020; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
+                <div><strong style="color:#1A1A1A;">Name must match ID</strong><br>Enter full name exactly as it appears on your passport or government-issued ID.</div>
+            </div>
+            <div class="col-md-4 d-flex gap-2 align-items-start">
+                <i class="bi bi-shield-check" style="color:#1a9e5c; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
+                <div><strong style="color:#1A1A1A;">Price guaranteed</strong><br>Your fare is locked the moment payment is confirmed — it will never increase after that.</div>
+            </div>
+            <div class="col-md-4 d-flex gap-2 align-items-start">
+                <i class="bi bi-clock-history" style="color:#0086FF; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
+                <div><strong style="color:#1A1A1A;">Booking cutoff</strong><br>Flights departing within 2 hours cannot be booked online. Contact the airline directly.</div>
+            </div>
+        </div>
+    </div>
 
     <form method="POST">
     <div class="row g-4">

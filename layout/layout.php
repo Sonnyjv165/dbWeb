@@ -31,18 +31,50 @@ if (session_status() === PHP_SESSION_NONE) {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             background: var(--trip-bg);
             color: var(--trip-text);
-            padding-top: 64px;
+            padding-top: 84px;
         }
 
-        /* ── NAVBAR ── */
+        /* ── FLOATING NAVBAR ── */
         .navbar-trip {
-            background: var(--trip-white);
-            height: 64px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.09);
-            padding: 0;
+            /* Floating position — detached from edge */
+            position: fixed;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 1180px;
+            z-index: 1040;
+
+            /* Frosted glass */
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+
+            /* Shape */
+            border-radius: 18px;
+            height: 58px;
+            padding: 0 20px;
+
+            /* Depth */
+            border: 1px solid rgba(0, 134, 255, 0.12);
+            box-shadow:
+                0 4px 16px rgba(0, 53, 128, 0.10),
+                0 1px 0   rgba(255, 255, 255, 0.9) inset;
+
+            transition: box-shadow 0.35s ease, background 0.35s ease, top 0.35s ease;
         }
+
+        /* Enhance shadow when user scrolls down */
+        .navbar-trip.nav-scrolled {
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow:
+                0 8px 32px rgba(0, 53, 128, 0.16),
+                0 2px 8px  rgba(0, 53, 128, 0.08),
+                0 1px 0    rgba(255, 255, 255, 0.9) inset;
+        }
+
         .navbar-trip .navbar-brand {
-            font-size: 22px;
+            font-size: 21px;
             font-weight: 800;
             color: var(--trip-blue);
             letter-spacing: -0.5px;
@@ -53,10 +85,10 @@ if (session_status() === PHP_SESSION_NONE) {
             font-size: 14px;
             font-weight: 500;
             padding: 6px 14px;
-            border-radius: 4px;
-            transition: background 0.15s;
+            border-radius: 8px;
+            transition: background 0.15s, color 0.15s;
         }
-        .navbar-trip .nav-link:hover { background: #f0f4ff; color: var(--trip-blue); }
+        .navbar-trip .nav-link:hover { background: #edf3ff; color: var(--trip-blue); }
 
         /* ── BUTTONS ── */
         .btn-trip {
@@ -136,14 +168,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
 <!-- ====== ADMIN TOP BAR (admin only) ====== -->
 <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
-<div style="background:#003580; color:#fff; font-size:12px; font-weight:600; text-align:center; padding:5px 0; letter-spacing:.5px; position:fixed; top:0; width:100%; z-index:1050;">
+<div id="adminBar" style="background:linear-gradient(90deg,#003580,#0052a3); color:#fff; font-size:12px; font-weight:600; text-align:center; padding:6px 0; letter-spacing:.5px; position:fixed; top:0; width:100%; z-index:1050;">
     <i class="bi bi-shield-fill-check me-2"></i>ADMIN PANEL &nbsp;—&nbsp; Changes made here affect all users
 </div>
-<style>body { padding-top: 92px; } .navbar-trip { top: 28px; }</style>
+<style>body { padding-top: 112px; } .navbar-trip { top: 44px; }</style>
 <?php endif; ?>
 
 <!-- ====== NAVBAR ====== -->
-<nav class="navbar navbar-expand-lg navbar-trip fixed-top">
+<nav class="navbar navbar-expand-lg navbar-trip">
     <div class="container">
 
         <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
@@ -215,12 +247,26 @@ if (session_status() === PHP_SESSION_NONE) {
                             <i class="bi bi-person-circle me-1"></i>
                             <?= htmlspecialchars($_SESSION['user_name'] ?? 'User') ?>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="min-width:220px;">
                             <li class="px-3 pt-2 pb-1">
                                 <div style="font-size:13px; font-weight:600;"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></div>
                                 <div style="font-size:12px; color:#aaa;"><?= htmlspecialchars($_SESSION['user_email'] ?? '') ?></div>
+                                <?php
+                                // Show Trip Coins balance in dropdown
+                                if (isset($_SESSION['user_id'])) {
+                                    global $conn;
+                                    $loyaltyRow = $conn->query("SELECT User_Loyalty FROM User WHERE User_ID=" . (int)$_SESSION['user_id'])->fetch_assoc();
+                                    $loyaltyPts = $loyaltyRow['User_Loyalty'] ?? 0;
+                                }
+                                ?>
+                                <div style="font-size:12px; color:#FF7020; margin-top:4px;">
+                                    <i class="bi bi-coin me-1"></i><?= number_format($loyaltyPts ?? 0) ?> Trip Coins
+                                </div>
                             </li>
                             <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item" href="/dbweb/user/profile.php">
+                                <i class="bi bi-person-circle me-2"></i>My Profile
+                            </a></li>
                             <li><a class="dropdown-item" href="/dbweb/user/dashboard.php">
                                 <i class="bi bi-ticket-detailed me-2"></i>My Bookings
                             </a></li>
@@ -240,3 +286,13 @@ if (session_status() === PHP_SESSION_NONE) {
         </div>
     </div>
 </nav>
+
+<script>
+(function () {
+    const nav = document.querySelector('.navbar-trip');
+    if (!nav) return;
+    window.addEventListener('scroll', function () {
+        nav.classList.toggle('nav-scrolled', window.scrollY > 20);
+    }, { passive: true });
+})();
+</script>
