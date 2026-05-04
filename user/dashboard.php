@@ -195,7 +195,7 @@ include '../layout/layout.php';
 
     <?php if (empty($myBookings)): ?>
         <div class="trip-card p-5 text-center text-muted reveal" style="--reveal-delay:0.05s;">
-            <div style="font-size:60px; opacity:.2;">✈</div>
+            <div style="font-size:56px; opacity:.18; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
             <h5 class="mt-3">No bookings yet</h5>
             <p style="font-size:14px;">Search and book your first flight to get started.</p>
             <a href="/dbweb/index.php" class="btn btn-trip mt-2">Search Flights</a>

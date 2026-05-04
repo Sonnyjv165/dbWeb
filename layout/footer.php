@@ -6,8 +6,8 @@
 
             <!-- Brand column -->
             <div class="col-md-4">
-                <div style="font-size:22px; font-weight:800; color:#0086FF; letter-spacing:-0.5px; margin-bottom:10px;">
-                    ✈ trip<span style="color:#FF7020;">.</span>com
+                <div style="font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-bottom:10px; display:flex; align-items:baseline; gap:1px;">
+                    <span style="font-family:var(--font-serif); font-style:italic; font-weight:600; color:#111;">trip</span><span style="color:var(--trip-orange, #F06020);">.</span><span style="color:#111; font-size:18px; font-weight:700;">com</span>
                 </div>
                 <p style="font-size:13px; color:#6B6B6B; line-height:1.7; max-width:280px;">
                     A simulated flight booking platform built for academic demonstration. Book, manage, and explore flights — all in one place.

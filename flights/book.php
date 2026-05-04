@@ -207,12 +207,44 @@ $title = 'Book Flight';
 include '../layout/layout.php';
 ?>
 
+<style>
+.dark-summary {
+    background: #111111;
+    border-radius: 14px;
+    padding: 24px;
+    position: sticky;
+    top: 80px;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.dark-summary h6   { color: #fff; font-family: var(--font-serif); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 20px; }
+.dark-summary .text-muted { color: rgba(255,255,255,0.50) !important; }
+.dark-summary hr   { border-color: rgba(255,255,255,0.10); }
+.dark-summary .price-text { color: var(--trip-orange); }
+.dark-summary .summary-row { display:flex; justify-content:space-between; align-items:baseline; font-size:13px; margin-bottom:8px; }
+.dark-summary .summary-row.total { font-size:15px; font-weight:700; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; margin-top:4px; }
+.dark-summary .summary-row span:first-child { color: rgba(255,255,255,0.55); }
+.dark-summary .summary-row span:last-child  { color: #fff; font-weight:600; }
+.dark-summary .summary-row.total span       { color: #fff; }
+.dark-summary .info-bar {
+    background: rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.72);
+    margin-bottom: 16px;
+}
+.book-crumb a { color: var(--trip-blue); font-size: 13px; text-decoration: none; }
+.book-crumb a:hover { text-decoration: underline; }
+.book-crumb span { color: var(--trip-muted); font-size: 13px; }
+</style>
+
 <div class="container py-4">
 
-    <nav style="font-size:13px;" class="mb-3">
-        <a href="/dbweb/index.php" style="color:#0086FF;">Home</a> ›
-        <a href="javascript:history.back()" style="color:#0086FF;">Search Results</a> ›
-        <span class="text-muted">Booking</span>
+    <nav class="book-crumb mb-3">
+        <a href="/dbweb/index.php">Home</a> ›
+        <a href="javascript:history.back()">Search Results</a> ›
+        <span>Booking</span>
     </nav>
 
     <?php if ($error): ?>
@@ -238,7 +270,7 @@ include '../layout/layout.php';
                 <div><strong style="color:#1A1A1A;">Price guaranteed</strong><br>Your fare is locked the moment payment is confirmed — it will never increase after that.</div>
             </div>
             <div class="col-md-4 d-flex gap-2 align-items-start">
-                <i class="bi bi-clock-history" style="color:#0086FF; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
+                <i class="bi bi-clock-history" style="color:#0077EE; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
                 <div><strong style="color:#1A1A1A;">Booking cutoff</strong><br>Flights departing within 2 hours cannot be booked online. Contact the airline directly.</div>
             </div>
         </div>
@@ -253,11 +285,11 @@ include '../layout/layout.php';
             <!-- Outbound Flight Summary -->
             <div class="trip-card p-4 mb-3">
                 <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:12px; letter-spacing:.6px;">
-                    <?= $isRoundTrip ? '✈ Outbound Flight' : '✈ Selected Flight' ?>
+                    <i class="bi bi-airplane me-1"></i><?= $isRoundTrip ? 'Outbound Flight' : 'Selected Flight' ?>
                 </h6>
                 <div class="d-flex align-items-center gap-4 flex-wrap">
                     <div>
-                        <div style="font-size:20px; font-weight:800; color:#0086FF;"><?= htmlspecialchars($flight['Airln_Code']) ?></div>
+                        <div style="font-size:20px; font-weight:800; color:#0077EE;"><?= htmlspecialchars($flight['Airln_Code']) ?></div>
                         <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($flight['Airln_Name']) ?> · <?= htmlspecialchars($flight['Flght_No']) ?></div>
                     </div>
                     <div class="d-flex align-items-center gap-3 flex-grow-1">
@@ -268,8 +300,8 @@ include '../layout/layout.php';
                         </div>
                         <div class="flex-grow-1 text-center">
                             <div style="font-size:12px; color:#aaa; margin-bottom:4px;"><?= flightDuration($flight['Flght_DepartDate'], $flight['Flght_ArriveDate']) ?></div>
-                            <div style="height:2px; background:#0086FF; position:relative;">
-                                <span style="position:absolute;right:-4px;top:-7px;font-size:14px;color:#0086FF;">✈</span>
+                            <div style="height:2px; background:#0077EE; position:relative;">
+                                <span style="position:absolute;right:-4px;top:-9px;font-size:14px;color:#0077EE;"><i class="bi bi-airplane-fill"></i></span>
                             </div>
                             <div class="mt-1"><span class="badge badge-trip-blue" style="font-size:10px;">Non-stop</span></div>
                         </div>
@@ -290,11 +322,11 @@ include '../layout/layout.php';
             <?php if ($isRoundTrip): ?>
             <div class="trip-card p-4 mb-3" style="border-left:4px solid #FF7020;">
                 <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:12px; letter-spacing:.6px;">
-                    ↩ Return Flight
+                    <i class="bi bi-arrow-return-left me-1"></i>Return Flight
                 </h6>
                 <div class="d-flex align-items-center gap-4 flex-wrap">
                     <div>
-                        <div style="font-size:20px; font-weight:800; color:#0086FF;"><?= htmlspecialchars($returnFlight['Airln_Code']) ?></div>
+                        <div style="font-size:20px; font-weight:800; color:#0077EE;"><?= htmlspecialchars($returnFlight['Airln_Code']) ?></div>
                         <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($returnFlight['Airln_Name']) ?> · <?= htmlspecialchars($returnFlight['Flght_No']) ?></div>
                     </div>
                     <div class="d-flex align-items-center gap-3 flex-grow-1">
@@ -306,7 +338,7 @@ include '../layout/layout.php';
                         <div class="flex-grow-1 text-center">
                             <div style="font-size:12px; color:#aaa; margin-bottom:4px;"><?= flightDuration($returnFlight['Flght_DepartDate'], $returnFlight['Flght_ArriveDate']) ?></div>
                             <div style="height:2px; background:#FF7020; position:relative;">
-                                <span style="position:absolute;right:-4px;top:-7px;font-size:14px;color:#FF7020;">✈</span>
+                                <span style="position:absolute;right:-4px;top:-9px;font-size:14px;color:#FF7020;"><i class="bi bi-airplane-fill"></i></span>
                             </div>
                             <div class="mt-1"><span class="badge badge-trip-orange" style="font-size:10px;">Return · Non-stop</span></div>
                         </div>
@@ -328,7 +360,7 @@ include '../layout/layout.php';
             <?php for ($i = 1; $i <= $passengers; $i++): ?>
             <div class="trip-card p-4 mb-3">
                 <h6 class="fw-bold mb-3">
-                    <i class="bi bi-person-circle me-2" style="color:#0086FF;"></i>
+                    <i class="bi bi-person-circle me-2" style="color:#0077EE;"></i>
                     Passenger <?= $i ?><?= $passengers > 1 ? " of $passengers" : '' ?>
                 </h6>
                 <div class="mb-0">
@@ -368,8 +400,8 @@ include '../layout/layout.php';
 
         <!-- RIGHT — Price Summary -->
         <div class="col-lg-4">
-            <div class="trip-card p-4 sticky-top" style="top:80px;">
-                <h6 class="fw-bold mb-3">Price Summary</h6>
+            <div class="dark-summary">
+                <h6>Price Summary</h6>
 
                 <?php if ($isRoundTrip): ?>
                 <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
@@ -414,15 +446,15 @@ include '../layout/layout.php';
                     Promo discount (if any) applied on confirm.
                 </p>
 
-                <div class="mb-3 p-3 rounded-3" style="background:#f0f8ff; font-size:13px; color:#0086FF;">
-                    <i class="bi bi-shield-check me-2"></i>Instant confirmation · Free cancellation
+                <div class="info-bar">
+                    <i class="bi bi-shield-check me-2"></i>Instant confirmation &middot; Free cancellation
                 </div>
 
-                <button type="submit" name="confirm_booking" class="btn-trip-orange w-100 py-3" style="font-size:16px; border-radius:8px;">
+                <button type="submit" name="confirm_booking" class="btn-trip-orange w-100 py-3" style="font-size:15px; border-radius:8px; font-weight:700;">
                     <?= $isRoundTrip ? 'Confirm Round Trip' : 'Confirm Booking' ?>
                 </button>
 
-                <p class="text-muted text-center mt-3 mb-0" style="font-size:12px;">
+                <p style="color:rgba(255,255,255,0.38); text-align:center; margin-top:12px; margin-bottom:0; font-size:12px;">
                     By confirming, you agree to our terms of service.
                 </p>
             </div>

@@ -75,23 +75,41 @@ $title = 'Booking Confirmed';
 include '../layout/layout.php';
 ?>
 
+<style>
+.confirm-ref {
+    font-family: var(--font-sans);
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    margin: 10px 0 8px;
+}
+.confirm-ref-card {
+    border-radius: 16px;
+    padding: 28px 24px;
+    margin-bottom: 28px;
+    text-align: center;
+    color: #fff;
+    border: none;
+}
+</style>
+
 <div class="container py-5" style="max-width:800px;">
 
     <!-- Status Banner -->
     <div class="text-center mb-4">
         <?php if ($isCancelled): ?>
-            <div style="width:72px;height:72px;background:#fff0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px;color:#d93025;">
-                ✕
+            <div style="width:72px;height:72px;background:#fff0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;color:#d93025;">
+                <i class="bi bi-x-circle-fill"></i>
             </div>
-            <h3 class="fw-bold mb-1" style="color:#d93025;">Booking Cancelled</h3>
+            <h3 style="font-family:var(--font-serif); font-weight:600; letter-spacing:-0.02em; color:#d93025; margin-bottom:4px;">Booking Cancelled</h3>
             <p class="text-muted" style="font-size:15px;">
                 This booking has been cancelled. A refund has been initiated and may take a few business days to reflect.
             </p>
         <?php else: ?>
-            <div style="width:72px;height:72px;background:#e6f9f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px;color:#1a9e5c;">
-                ✓
+            <div style="width:72px;height:72px;background:#e6f9f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;color:#1a9e5c;">
+                <i class="bi bi-check-circle-fill"></i>
             </div>
-            <h3 class="fw-bold mb-1" style="color:#1a9e5c;">Booking Confirmed!</h3>
+            <h3 style="font-family:var(--font-serif); font-weight:600; letter-spacing:-0.02em; color:#1a9e5c; margin-bottom:4px;">Booking Confirmed</h3>
             <p class="text-muted" style="font-size:15px;">
                 <?= $isRoundTrip ? 'Your round trip has been booked successfully. Have a great journey!' : 'Your flight has been booked successfully. Have a great trip!' ?>
             </p>
@@ -99,12 +117,10 @@ include '../layout/layout.php';
     </div>
 
     <!-- Booking Reference Card -->
-    <div class="trip-card p-4 mb-4 text-center"
-         style="background:<?= $isCancelled ? 'linear-gradient(135deg,#555,#888)' : 'linear-gradient(135deg,#003580,#0086FF)' ?>; color:#fff;">
-        <div style="font-size:13px; opacity:.8; text-transform:uppercase; letter-spacing:.6px;">Booking Reference</div>
-        <div style="font-size:36px; font-weight:900; letter-spacing:4px; margin:8px 0;">
-            <?= htmlspecialchars($booking['Book_Confirm']) ?>
-        </div>
+    <div class="confirm-ref-card"
+         style="background:<?= $isCancelled ? 'linear-gradient(135deg,#3a3a3a,#6b6b6b)' : 'linear-gradient(135deg,#0A1628,#1a3a6a)' ?>;">
+        <div style="font-size:11px; font-weight:700; opacity:.65; text-transform:uppercase; letter-spacing:.10em;">Booking Reference</div>
+        <div class="confirm-ref"><?= htmlspecialchars($booking['Book_Confirm']) ?></div>
         <?php if ($isCancelled): ?>
             <div style="display:inline-block; background:rgba(255,255,255,0.2); border-radius:20px; padding:3px 16px; font-size:12px; font-weight:700; letter-spacing:1px; margin-bottom:6px;">
                 CANCELLED
@@ -125,19 +141,19 @@ include '../layout/layout.php';
         $fromCity = airportCity($f['Flght_Depart']);
         $toCity   = airportCity($f['Flght_Arrival']);
         $legLabel = $isRoundTrip ? ($legIndex === 0 ? 'Outbound Flight' : 'Return Flight') : 'Flight Details';
-        $borderColor = $legIndex === 0 ? '#0086FF' : '#FF7020';
+        $borderColor = $legIndex === 0 ? '#0077EE' : '#F06020';
         $badgeClass  = $legIndex === 0 ? 'badge-trip-blue' : 'badge-trip-orange';
     ?>
     <div class="trip-card p-4 mb-4" style="border-left:4px solid <?= $borderColor ?>;">
         <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:12px; letter-spacing:.6px;">
             <?php if ($isRoundTrip): ?>
-                <span class="badge <?= $badgeClass ?> me-2"><?= $legIndex === 0 ? '✈ Outbound' : '↩ Return' ?></span>
+                <span class="badge <?= $badgeClass ?> me-2"><i class="bi bi-airplane me-1"></i><?= $legIndex === 0 ? 'Outbound' : 'Return' ?></span>
             <?php endif; ?>
             <?= $legLabel ?>
         </h6>
         <div class="row align-items-center">
             <div class="col-auto text-center" style="min-width:90px;">
-                <div style="font-size:20px; font-weight:800; color:#0086FF;"><?= htmlspecialchars($f['Airln_Code']) ?></div>
+                <div style="font-size:20px; font-weight:800; color:#0077EE;"><?= htmlspecialchars($f['Airln_Code']) ?></div>
                 <div style="font-size:11px; color:#aaa;"><?= htmlspecialchars($f['Airln_Name']) ?></div>
                 <div style="font-size:11px; color:#aaa;"><?= htmlspecialchars($f['Flght_No']) ?></div>
             </div>
@@ -153,7 +169,7 @@ include '../layout/layout.php';
                             <?= flightDuration($f['Flght_DepartDate'], $f['Flght_ArriveDate']) ?>
                         </div>
                         <div style="height:2px; background:<?= $borderColor ?>; position:relative;">
-                            <span style="position:absolute;right:-4px;top:-7px;font-size:16px;color:<?= $borderColor ?>;">✈</span>
+                            <span style="position:absolute;right:-4px;top:-9px;font-size:16px;color:<?= $borderColor ?>;"><i class="bi bi-airplane-fill"></i></span>
                         </div>
                         <div class="mt-1"><span class="badge <?= $badgeClass ?>" style="font-size:11px;">Non-stop</span></div>
                     </div>
@@ -232,13 +248,17 @@ include '../layout/layout.php';
 
     <!-- Trip Coins earned -->
     <?php if ($coinsEarned > 0): ?>
-    <div class="trip-card p-4 mb-4 d-flex align-items-center gap-3" style="background:linear-gradient(135deg,#fff8f0,#fff3e0); border-left:4px solid #FF7020;">
-        <div style="font-size:36px; line-height:1;">🪙</div>
+    <div class="trip-card p-4 mb-4 d-flex align-items-center gap-3" style="background:linear-gradient(135deg,#fff8f4,#fff3ec); border-left:4px solid var(--trip-orange);">
+        <div style="width:48px; height:48px; border-radius:12px; background:rgba(240,96,32,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px; color:var(--trip-orange);">
+            <i class="bi bi-coin"></i>
+        </div>
         <div>
-            <div class="fw-bold" style="font-size:15px; color:#FF7020;">+<?= $coinsEarned ?> Trip Coins Earned!</div>
-            <div style="font-size:13px; color:#6B6B6B;">
-                Coins are credited to your account after your trip. Check your balance on your
-                <a href="/dbweb/user/profile.php" style="color:#0086FF;">profile page</a>.
+            <div style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:var(--trip-orange); letter-spacing:-0.01em; margin-bottom:4px;">
+                +<?= $coinsEarned ?> Trip Coins Earned
+            </div>
+            <div style="font-size:13px; color:var(--trip-muted);">
+                Coins are credited after your trip. Check your balance on your
+                <a href="/dbweb/user/profile.php" style="color:var(--trip-blue); font-weight:500;">profile page</a>.
             </div>
         </div>
     </div>
@@ -258,7 +278,7 @@ include '../layout/layout.php';
                 <div>Quote reference <strong><?= htmlspecialchars($booking['Book_Confirm']) ?></strong> when following up on your refund with customer support.</div>
             </div>
             <div class="col-md-6 d-flex gap-2">
-                <i class="bi bi-airplane" style="color:#0086FF; flex-shrink:0; margin-top:2px;"></i>
+                <i class="bi bi-airplane" style="color:#0077EE; flex-shrink:0; margin-top:2px;"></i>
                 <div>Looking to rebook? Search for available flights and we'll have you on your way again.</div>
             </div>
         </div>

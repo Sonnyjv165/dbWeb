@@ -98,39 +98,53 @@ include '../layout/layout.php';
 
 <style>
 /* ── Sort bar ── */
-.sort-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.sort-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
 .sort-btn {
-    padding:5px 16px; font-size:12px; font-weight:600; border-radius:20px; cursor:pointer;
-    border:1.5px solid #ddd; background:#fff; color:#6B6B6B; transition:all 0.15s;
+    padding:5px 18px; font-size:12px; font-weight:600; border-radius:999px; cursor:pointer;
+    border:1.5px solid rgba(0,0,0,0.14); background:#fff; color:var(--trip-muted);
+    font-family:var(--font-sans); transition:all 0.18s;
 }
-.sort-btn.active, .sort-btn:hover { background:#0086FF; color:#fff; border-color:#0086FF; }
+.sort-btn.active, .sort-btn:hover { background:var(--trip-text); color:#fff; border-color:var(--trip-text); }
+
 .seats-warning { color:#d93025; font-size:12px; font-weight:600; }
-.seats-ok      { color:#aaa; font-size:12px; }
+.seats-ok      { color:var(--trip-muted); font-size:12px; }
 
 /* ── Step pills ── */
 .step-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 18px;
-    border-radius: 24px;
-    font-size: 13px;
-    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    font-family: var(--font-sans);
 }
-.step-pill.active   { background: #e6f9f0; color: #1a9e5c; border: 1.5px solid #1a9e5c; }
-.step-pill.current  { background: #fff4ed; color: #FF7020; border: 1.5px solid #FF7020; }
-.step-pill.inactive { background: #f5f5f5; color: #aaa;    border: 1.5px solid #ddd; }
-.locked-card { border: 2px solid #1a9e5c; border-radius: 12px; background: #f9fffe; }
+.step-pill.active   { background: #eef7ee; color: #1a9e5c; border: 1.5px solid rgba(26,158,92,0.4); }
+.step-pill.current  { background: #fff4ec; color: var(--trip-orange); border: 1.5px solid rgba(240,96,32,0.4); }
+.step-pill.inactive { background: var(--trip-bg); color: var(--trip-muted); border: 1.5px solid var(--trip-border); }
+
+/* ── Locked outbound card ── */
+.locked-card { border: 1.5px solid rgba(26,158,92,0.5); border-radius: 14px; background: #fafffe; }
+
+/* ── Search bar labels ── */
+.sbar-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.10em;
+    text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom:5px; display:block;
+}
+
+/* ── Flight result cards ── */
+.flight-card-out { border-left: 3px solid #0077EE; }
+.flight-card-ret { border-left: 3px solid var(--trip-orange); }
+.airline-code    { font-size: 20px; font-weight: 800; color: #0077EE; font-family: var(--font-sans); }
+
+/* ── Result section heading ── */
+.result-heading { font-family:var(--font-serif); font-weight:600; letter-spacing:-0.02em; margin-bottom:2px; }
 </style>
 
-<!-- ====== COMPACT SEARCH BAR ====== -->
-<div style="background:linear-gradient(135deg,#003580,#0086FF); padding:20px 0;">
+<!-- ====== STICKY SEARCH BAR ====== -->
+<div style="position:sticky; top:74px; z-index:100; background:#0A1628; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06); box-shadow:0 4px 20px rgba(0,0,0,0.18);">
     <div class="container">
         <form method="GET" action="/dbweb/flights/search.php" class="row g-2 align-items-end">
             <input type="hidden" name="trip_type" value="<?= $tripType ?>">
 
             <div class="col-md-2">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">From</label>
+                <label class="sbar-label">From</label>
                 <select name="from" class="form-select form-select-sm" required>
                     <?php foreach ($AIRPORTS as $code => $ap): ?>
                         <option value="<?= $code ?>" <?= $code === $fromCode ? 'selected' : '' ?>>
@@ -141,7 +155,7 @@ include '../layout/layout.php';
             </div>
 
             <div class="col-md-2">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">To</label>
+                <label class="sbar-label">To</label>
                 <select name="to" class="form-select form-select-sm" required>
                     <?php foreach ($AIRPORTS as $code => $ap): ?>
                         <option value="<?= $code ?>" <?= $code === $toCode ? 'selected' : '' ?>>
@@ -152,19 +166,19 @@ include '../layout/layout.php';
             </div>
 
             <div class="<?= $tripType === 'roundtrip' ? 'col-md-2' : 'col-md-2' ?>">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Depart</label>
+                <label class="sbar-label">Depart</label>
                 <input type="date" name="date" class="form-control form-control-sm"
                        value="<?= htmlspecialchars($date) ?>" required min="<?= date('Y-m-d') ?>">
             </div>
 
             <?php if ($tripType === 'roundtrip'): ?>
             <div class="col-md-2">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Return</label>
+                <label class="sbar-label">Return</label>
                 <input type="date" name="return_date" class="form-control form-control-sm"
                        value="<?= htmlspecialchars($returnDate) ?>" min="<?= htmlspecialchars($date ?: date('Y-m-d')) ?>">
             </div>
             <div class="col-md-1">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Pax</label>
+                <label class="sbar-label">Pax</label>
                 <select name="passengers" class="form-select form-select-sm">
                     <?php for ($i = 1; $i <= 9; $i++): ?>
                         <option value="<?= $i ?>" <?= $i == $passengers ? 'selected' : '' ?>><?= $i ?></option>
@@ -172,7 +186,7 @@ include '../layout/layout.php';
                 </select>
             </div>
             <div class="col-md-1">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Class</label>
+                <label class="sbar-label">Class</label>
                 <select name="class" class="form-select form-select-sm">
                     <?php foreach (['economy'=>'Eco','business'=>'Biz','first'=>'First'] as $val => $lbl): ?>
                         <option value="<?= $val ?>" <?= $val === $class ? 'selected' : '' ?>><?= $lbl ?></option>
@@ -186,7 +200,7 @@ include '../layout/layout.php';
             </div>
             <?php else: ?>
             <div class="col-md-2">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Passengers</label>
+                <label class="sbar-label">Passengers</label>
                 <select name="passengers" class="form-select form-select-sm">
                     <?php for ($i = 1; $i <= 9; $i++): ?>
                         <option value="<?= $i ?>" <?= $i == $passengers ? 'selected' : '' ?>><?= $i ?> Pax</option>
@@ -194,7 +208,7 @@ include '../layout/layout.php';
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label text-white fw-semibold" style="font-size:11px; text-transform:uppercase; letter-spacing:.5px;">Class</label>
+                <label class="sbar-label">Class</label>
                 <select name="class" class="form-select form-select-sm">
                     <?php foreach (['economy'=>'Economy','business'=>'Business','first'=>'First'] as $val => $lbl): ?>
                         <option value="<?= $val ?>" <?= $val === $class ? 'selected' : '' ?>><?= $lbl ?></option>
@@ -246,7 +260,7 @@ include '../layout/layout.php';
             </div>
             <div class="row g-0 align-items-center">
                 <div class="col-auto text-center pe-4" style="border-right:1px solid #e0f0e8; min-width:90px;">
-                    <div style="font-size:20px; color:#0086FF; font-weight:800;"><?= htmlspecialchars($selectedOutFlight['Airln_Code']) ?></div>
+                    <div class="airline-code" style="font-size:20px;"><?= htmlspecialchars($selectedOutFlight['Airln_Code']) ?></div>
                     <div style="font-size:11px; color:#6B6B6B;"><?= htmlspecialchars($selectedOutFlight['Airln_Name']) ?></div>
                     <div style="font-size:11px; color:#aaa;" class="mt-1"><?= htmlspecialchars($selectedOutFlight['Flght_No']) ?></div>
                 </div>
@@ -259,7 +273,7 @@ include '../layout/layout.php';
                         <div class="flex-grow-1 text-center">
                             <div style="font-size:12px; color:#aaa; margin-bottom:4px;"><?= flightDuration($selectedOutFlight['Flght_DepartDate'], $selectedOutFlight['Flght_ArriveDate']) ?></div>
                             <div style="height:2px; background:#1a9e5c; position:relative;">
-                                <span style="position:absolute;right:-4px;top:-7px;font-size:14px;color:#1a9e5c;">✈</span>
+                                <span style="position:absolute;right:-4px;top:-9px;font-size:14px;color:#1a9e5c;"><i class="bi bi-airplane-fill"></i></span>
                             </div>
                             <div class="mt-1"><span class="badge badge-trip-green" style="font-size:10px;">Non-stop</span></div>
                         </div>
@@ -280,7 +294,7 @@ include '../layout/layout.php';
         <!-- Return flights -->
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
-                <h5 class="fw-bold mb-0">
+                <h5 class="result-heading mb-0">
                     <?= htmlspecialchars($toCity) ?> → <?= htmlspecialchars($fromCity) ?>
                     <span class="badge badge-trip-orange ms-2 px-2 py-1" style="font-size:13px;">Return</span>
                 </h5>
@@ -295,7 +309,7 @@ include '../layout/layout.php';
 
         <?php if (empty($returnFlights)): ?>
             <div class="trip-card p-5 text-center text-muted">
-                <div style="font-size:48px; opacity:.3;">✈</div>
+                <div style="font-size:48px; opacity:.22; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
                 <h6 class="mt-3">No return flights found for this date.</h6>
                 <p style="font-size:14px;">Try changing the return date in the search bar above.</p>
             </div>
@@ -317,10 +331,10 @@ include '../layout/layout.php';
                     'class'      => $class,
                 ]);
             ?>
-            <div class="trip-card mb-3 p-0 overflow-hidden" style="border-left:4px solid #FF7020;">
+            <div class="trip-card mb-3 p-0 overflow-hidden flight-card-ret">
                 <div class="row g-0 align-items-center">
                     <div class="col-md-2 text-center py-3 px-3" style="border-right:1px solid #f0f0f0;">
-                        <div style="font-size:22px; color:#0086FF; font-weight:800;"><?= htmlspecialchars($f['Airln_Code']) ?></div>
+                        <div class="airline-code"><?= htmlspecialchars($f['Airln_Code']) ?></div>
                         <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($f['Airln_Name']) ?></div>
                         <div style="font-size:11px; color:#aaa;" class="mt-1"><?= htmlspecialchars($f['Flght_No']) ?></div>
                     </div>
@@ -332,8 +346,8 @@ include '../layout/layout.php';
                             </div>
                             <div class="flex-grow-1 text-center">
                                 <div style="font-size:12px; color:#6B6B6B; margin-bottom:4px;"><?= flightDuration($f['Flght_DepartDate'], $f['Flght_ArriveDate']) ?></div>
-                                <div style="height:2px; background:#0086FF; position:relative;">
-                                    <span style="position:absolute;right:-4px;top:-7px;font-size:16px;color:#0086FF;">✈</span>
+                                <div style="height:2px; background:#0077EE; position:relative;">
+                                    <span style="position:absolute;right:-4px;top:-9px;font-size:16px;color:#0077EE;"><i class="bi bi-airplane-fill"></i></span>
                                 </div>
                                 <div class="mt-1"><span class="badge badge-trip-orange px-2" style="font-size:11px;">Return · Non-stop</span></div>
                             </div>
@@ -386,7 +400,7 @@ include '../layout/layout.php';
 
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
-                <h5 class="fw-bold mb-0">
+                <h5 class="result-heading mb-0">
                     <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
                     <span class="badge badge-trip-blue ms-2 px-2 py-1" style="font-size:13px;">Outbound</span>
                 </h5>
@@ -402,7 +416,7 @@ include '../layout/layout.php';
 
         <?php if (empty($flights)): ?>
             <div class="trip-card p-5 text-center text-muted">
-                <div style="font-size:48px; opacity:.3;">✈</div>
+                <div style="font-size:48px; opacity:.22; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
                 <h6 class="mt-3">No outbound flights found for this route and date.</h6>
                 <p style="font-size:14px;">Try a different date or adjust your search.</p>
             </div>
@@ -419,12 +433,12 @@ include '../layout/layout.php';
                 $lowSeats    = $f['Flght_SeatAvail'] <= 7;
                 $selectUrl = '/dbweb/flights/search.php?' . $baseParams . '&out=' . $f['Flght_ID'];
             ?>
-            <div class="trip-card mb-3 p-0 overflow-hidden"
+            <div class="trip-card mb-3 p-0 overflow-hidden flight-card-out"
                  data-price="<?= $pricePerPax ?>"
                  data-time="<?= strtotime($f['Flght_DepartDate']) ?>">
                 <div class="row g-0 align-items-center">
                     <div class="col-md-2 text-center py-3 px-3" style="border-right:1px solid #f0f0f0;">
-                        <div style="font-size:22px; color:#0086FF; font-weight:800;"><?= htmlspecialchars($f['Airln_Code']) ?></div>
+                        <div class="airline-code"><?= htmlspecialchars($f['Airln_Code']) ?></div>
                         <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($f['Airln_Name']) ?></div>
                         <div style="font-size:11px; color:#aaa;" class="mt-1"><?= htmlspecialchars($f['Flght_No']) ?></div>
                     </div>
@@ -436,8 +450,8 @@ include '../layout/layout.php';
                             </div>
                             <div class="flex-grow-1 text-center">
                                 <div style="font-size:12px; color:#6B6B6B; margin-bottom:4px;"><?= flightDuration($f['Flght_DepartDate'], $f['Flght_ArriveDate']) ?></div>
-                                <div style="height:2px; background:#0086FF; position:relative;">
-                                    <span style="position:absolute;right:-4px;top:-7px;font-size:16px;color:#0086FF;">✈</span>
+                                <div style="height:2px; background:#0077EE; position:relative;">
+                                    <span style="position:absolute;right:-4px;top:-9px;font-size:16px;color:#0077EE;"><i class="bi bi-airplane-fill"></i></span>
                                 </div>
                                 <div class="mt-1"><span class="badge badge-trip-blue px-2" style="font-size:11px;">Non-stop</span></div>
                             </div>
@@ -479,7 +493,7 @@ include '../layout/layout.php';
 
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
-                <h5 class="fw-bold mb-0"><?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?></h5>
+                <h5 class="result-heading mb-0"><?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?></h5>
                 <p class="text-muted mb-0" style="font-size:13px;">
                     <?= date('D, d M Y', strtotime($date)) ?> &middot;
                     <?= $passengers ?> passenger<?= $passengers > 1 ? 's' : '' ?> &middot;
@@ -491,7 +505,7 @@ include '../layout/layout.php';
 
         <?php if (empty($flights)): ?>
             <div class="trip-card p-5 text-center text-muted">
-                <div style="font-size:48px; opacity:.3;">✈</div>
+                <div style="font-size:48px; opacity:.22; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
                 <h6 class="mt-3">No flights found for this route and date.</h6>
                 <p style="font-size:14px;">Try a different date or adjust your search.</p>
             </div>
@@ -514,12 +528,12 @@ include '../layout/layout.php';
                     'class'      => $class,
                 ]);
             ?>
-            <div class="trip-card mb-3 p-0 overflow-hidden"
+            <div class="trip-card mb-3 p-0 overflow-hidden flight-card-out"
                  data-price="<?= $pricePerPax ?>"
                  data-time="<?= strtotime($f['Flght_DepartDate']) ?>">
                 <div class="row g-0 align-items-center">
                     <div class="col-md-2 text-center py-3 px-3" style="border-right:1px solid #f0f0f0;">
-                        <div style="font-size:22px; color:#0086FF; font-weight:800;"><?= htmlspecialchars($f['Airln_Code']) ?></div>
+                        <div class="airline-code"><?= htmlspecialchars($f['Airln_Code']) ?></div>
                         <div style="font-size:12px; color:#6B6B6B; font-weight:500;"><?= htmlspecialchars($f['Airln_Name']) ?></div>
                         <div style="font-size:11px; color:#aaa;" class="mt-1"><?= htmlspecialchars($f['Flght_No']) ?></div>
                     </div>
@@ -533,8 +547,8 @@ include '../layout/layout.php';
                             </div>
                             <div class="flex-grow-1 text-center">
                                 <div style="font-size:12px; color:#6B6B6B; margin-bottom:4px;"><?= $duration ?></div>
-                                <div style="height:2px; background:#0086FF; position:relative;">
-                                    <span style="position:absolute;right:-4px;top:-7px;font-size:16px;color:#0086FF;">✈</span>
+                                <div style="height:2px; background:#0077EE; position:relative;">
+                                    <span style="position:absolute;right:-4px;top:-9px;font-size:16px;color:#0077EE;"><i class="bi bi-airplane-fill"></i></span>
                                 </div>
                                 <div class="mt-1"><span class="badge badge-trip-blue px-2" style="font-size:11px;">Non-stop</span></div>
                             </div>
@@ -581,7 +595,7 @@ include '../layout/layout.php';
 
     <?php else: ?>
         <div class="text-center py-5 text-muted">
-            <div style="font-size:60px; opacity:.2;">✈</div>
+            <div style="font-size:56px; opacity:.18; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
             <h5 class="mt-3">Search for available flights above.</h5>
         </div>
     <?php endif; ?>

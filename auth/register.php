@@ -53,9 +53,11 @@ include '../layout/layout.php';
     <div class="trip-card p-4 mt-3">
 
         <div class="text-center mb-4">
-            <div style="font-size:40px; color:#0086FF;">✈</div>
-            <h4 class="fw-bold mb-0">Create your account</h4>
-            <p class="text-muted" style="font-size:14px;">Join trip.com and start booking flights</p>
+            <div style="width:52px; height:52px; border-radius:14px; background:#e8f2fd; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:22px; color:var(--trip-blue);">
+                <i class="bi bi-person-plus"></i>
+            </div>
+            <h4 style="font-family:var(--font-serif); font-weight:600; font-size:24px; letter-spacing:-0.02em; margin-bottom:4px;">Create your account</h4>
+            <p class="text-muted" style="font-size:14px; margin:0;">Join trip.com and start booking flights</p>
         </div>
 
         <?php if ($error): ?>
