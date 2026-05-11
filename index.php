@@ -1,9 +1,11 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 session_start();
 require_once 'config/db.php';
 require_once 'config/airports.php';
 if (($_SESSION['role'] ?? '') === 'admin') {
-    header('Location: /dbweb/admin/dashboard.php');
+    header('Location: /admin/dashboard.php');
     exit();
 }
 $tomorrow = date('Y-m-d', strtotime('+1 day'));
@@ -298,11 +300,11 @@ include 'layout/layout.php';
             </p>
             <?php if (!isset($_SESSION['user_id'])): ?>
             <div class="d-flex gap-3 flex-wrap">
-                <a href="/dbweb/auth/register.php"
+                <a href="/auth/register.php"
                    style="background:#fff; color:#111; border-radius:7px; padding:11px 26px; font-size:14px; font-weight:700; text-decoration:none; font-family:var(--font-sans); transition:opacity 0.15s; display:inline-block;">
                     Create Free Account
                 </a>
-                <a href="/dbweb/auth/login.php"
+                <a href="/auth/login.php"
                    style="background:rgba(255,255,255,0.12); color:#fff; border:1.5px solid rgba(255,255,255,0.3); border-radius:7px; padding:10px 24px; font-size:14px; font-weight:600; text-decoration:none; font-family:var(--font-sans); backdrop-filter:blur(6px); display:inline-block;">
                     Sign In
                 </a>
@@ -325,7 +327,7 @@ include 'layout/layout.php';
                 <button class="trip-tab" id="tabRoundTrip" onclick="setTripType('roundtrip')">Round Trip</button>
             </div>
 
-            <form method="GET" action="/dbweb/flights/search.php">
+            <form method="GET" action="/flights/search.php">
                 <input type="hidden" name="trip_type" id="tripTypeInput" value="oneway">
 
                 <div class="row g-3">
@@ -417,8 +419,8 @@ include 'layout/layout.php';
                 Create a free account to access flight search, compare routes, and manage your bookings.
             </p>
             <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="/dbweb/auth/register.php" class="btn-trip" style="padding:11px 28px;">Create Free Account</a>
-                <a href="/dbweb/auth/login.php" class="btn-trip-outline" style="padding:10px 24px;">Sign In</a>
+                <a href="/auth/register.php" class="btn-trip" style="padding:11px 28px;">Create Free Account</a>
+                <a href="/auth/login.php" class="btn-trip-outline" style="padding:10px 24px;">Sign In</a>
             </div>
         </div>
         <?php endif; ?>
@@ -486,8 +488,8 @@ include 'layout/layout.php';
 
         <!-- Cebu — large left -->
         <div class="col-md-8 fade-in">
-            <a href="/dbweb/flights/search.php?from=MNL&to=CEB&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
-                <div class="dest-card-bg dest-tall" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(0,53,128,0.18) 100%), url('/dbweb/assets/destinations/Cebu.jpg') center/cover no-repeat; background-color:#1a6ec7;">
+            <a href="/flights/search.php?from=MNL&to=CEB&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
+                <div class="dest-card-bg dest-tall" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(0,53,128,0.18) 100%), url('/assets/destinations/Cebu.jpg') center/cover no-repeat; background-color:#1a6ec7;">
                     <div class="dest-card-info">
                         <div class="dest-card-city">Cebu</div>
                         <div class="dest-card-country">Philippines &middot; 1h 20m</div>
@@ -499,8 +501,8 @@ include 'layout/layout.php';
 
         <!-- Singapore — small right -->
         <div class="col-md-4 fade-in">
-            <a href="/dbweb/flights/search.php?from=MNL&to=SIN&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
-                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(0,80,60,0.18) 100%), url('/dbweb/assets/destinations/singapore.webp') center/cover no-repeat; background-color:#00897B;">
+            <a href="/flights/search.php?from=MNL&to=SIN&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
+                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(0,80,60,0.18) 100%), url('/assets/destinations/singapore.webp') center/cover no-repeat; background-color:#00897B;">
                     <div class="dest-card-info">
                         <div class="dest-card-city">Singapore</div>
                         <div class="dest-card-country">Singapore &middot; 3h 30m</div>
@@ -512,8 +514,8 @@ include 'layout/layout.php';
 
         <!-- Hong Kong — small right bottom -->
         <div class="col-md-4 fade-in">
-            <a href="/dbweb/flights/search.php?from=MNL&to=HKG&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
-                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(80,0,120,0.18) 100%), url('/dbweb/assets/destinations/Hongkong.jpg') center/cover no-repeat; background-color:#7B2FBE;">
+            <a href="/flights/search.php?from=MNL&to=HKG&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
+                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(80,0,120,0.18) 100%), url('/assets/destinations/Hongkong.jpg') center/cover no-repeat; background-color:#7B2FBE;">
                     <div class="dest-card-info">
                         <div class="dest-card-city">Hong Kong</div>
                         <div class="dest-card-country">HK SAR &middot; 2h 50m</div>
@@ -525,8 +527,8 @@ include 'layout/layout.php';
 
         <!-- Bangkok — small -->
         <div class="col-md-4 fade-in">
-            <a href="/dbweb/flights/search.php?from=MNL&to=BKK&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
-                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(0,80,50,0.18) 100%), url('/dbweb/assets/destinations/bangkok.jpg') center/cover no-repeat; background-color:#00796B;">
+            <a href="/flights/search.php?from=MNL&to=BKK&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
+                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(0,80,50,0.18) 100%), url('/assets/destinations/bangkok.jpg') center/cover no-repeat; background-color:#00796B;">
                     <div class="dest-card-info">
                         <div class="dest-card-city">Bangkok</div>
                         <div class="dest-card-country">Thailand &middot; 3h 10m</div>
@@ -538,8 +540,8 @@ include 'layout/layout.php';
 
         <!-- Dubai — large right -->
         <div class="col-md-8 fade-in">
-            <a href="/dbweb/flights/search.php?from=MNL&to=DXB&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
-                <div class="dest-card-bg dest-tall" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(140,80,0,0.18) 100%), url('/dbweb/assets/destinations/dubai.jpg') center/cover no-repeat; background-color:#C8820A;">
+            <a href="/flights/search.php?from=MNL&to=DXB&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
+                <div class="dest-card-bg dest-tall" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(140,80,0,0.18) 100%), url('/assets/destinations/dubai.jpg') center/cover no-repeat; background-color:#C8820A;">
                     <div class="dest-card-info">
                         <div class="dest-card-city">Dubai</div>
                         <div class="dest-card-country">UAE &middot; 9h 30m</div>
@@ -551,8 +553,8 @@ include 'layout/layout.php';
 
         <!-- Tokyo — small left -->
         <div class="col-md-4 fade-in">
-            <a href="/dbweb/flights/search.php?from=MNL&to=NRT&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
-                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(140,0,0,0.18) 100%), url('/dbweb/assets/destinations/Tokyo.jpg') center/cover no-repeat; background-color:#C0392B;">
+            <a href="/flights/search.php?from=MNL&to=NRT&date=<?= $tomorrow ?>&passengers=1&class=economy&trip_type=oneway" class="dest-card-link">
+                <div class="dest-card-bg dest-short" style="background: linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(140,0,0,0.18) 100%), url('/assets/destinations/Tokyo.jpg') center/cover no-repeat; background-color:#C0392B;">
                     <div class="dest-card-info">
                         <div class="dest-card-city">Tokyo</div>
                         <div class="dest-card-country">Japan &middot; 4h 10m</div>

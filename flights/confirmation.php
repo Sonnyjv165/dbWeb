@@ -4,18 +4,18 @@ require_once '../config/db.php';
 require_once '../config/airports.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /dbweb/auth/login.php');
+    header('Location: /auth/login.php');
     exit();
 }
 if (($_SESSION['role'] ?? '') === 'admin') {
-    header('Location: /dbweb/admin/dashboard.php');
+    header('Location: /admin/dashboard.php');
     exit();
 }
 
 $ref        = $_GET['ref']   ?? '';
 $coinsEarned = (int)($_GET['coins'] ?? 0);
 if (!$ref) {
-    header('Location: /dbweb/user/dashboard.php');
+    header('Location: /user/dashboard.php');
     exit();
 }
 
@@ -26,11 +26,11 @@ $stmt = $conn->prepare("
            f.Flght_ID, f.Flght_No, f.Flght_DepartDate, f.Flght_ArriveDate, f.Flght_Depart, f.Flght_Arrival,
            a.Airln_Name, a.Airln_Code,
            py.Paymt_Method, py.Paymt_Transaction
-    FROM Booking bk
-    JOIN Bookingdetails bd ON bd.Bokde_BookID  = bk.Book_ID
-    JOIN Flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
-    JOIN Airliner a        ON a.Airln_ID       = f.Flght_AirlnID
-    LEFT JOIN Payment py   ON py.Paymt_BookID  = bk.Book_ID
+    FROM booking bk
+    JOIN bookingdetails bd ON bd.Bokde_BookID  = bk.Book_ID
+    JOIN flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
+    JOIN airliner a        ON a.Airln_ID       = f.Flght_AirlnID
+    LEFT JOIN payment py   ON py.Paymt_BookID  = bk.Book_ID
     WHERE bk.Book_Confirm = ? AND bk.Book_UserID = ?
     ORDER BY f.Flght_DepartDate ASC, bd.Bokde_ID ASC
 ");
@@ -39,7 +39,7 @@ $stmt->execute();
 $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 if (empty($rows)) {
-    header('Location: /dbweb/user/dashboard.php');
+    header('Location: /user/dashboard.php');
     exit();
 }
 
@@ -258,7 +258,7 @@ include '../layout/layout.php';
             </div>
             <div style="font-size:13px; color:var(--trip-muted);">
                 Coins are credited after your trip. Check your balance on your
-                <a href="/dbweb/user/profile.php" style="color:var(--trip-blue); font-weight:500;">profile page</a>.
+                <a href="/user/profile.php" style="color:var(--trip-blue); font-weight:500;">profile page</a>.
             </div>
         </div>
     </div>
@@ -309,10 +309,10 @@ include '../layout/layout.php';
 
     <!-- Actions -->
     <div class="d-flex gap-3 justify-content-center flex-wrap">
-        <a href="/dbweb/user/dashboard.php" class="btn btn-trip px-4 py-2">
+        <a href="/user/dashboard.php" class="btn btn-trip px-4 py-2">
             <i class="bi bi-ticket-detailed me-2"></i>View My Bookings
         </a>
-        <a href="/dbweb/index.php" class="btn btn-trip-outline px-4 py-2">
+        <a href="/index.php" class="btn btn-trip-outline px-4 py-2">
             <i class="bi bi-airplane me-2"></i>Book Another Flight
         </a>
         <button onclick="window.print()" class="btn btn-outline-secondary px-4 py-2">

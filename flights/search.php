@@ -3,7 +3,7 @@ session_start();
 require_once '../config/db.php';
 require_once '../config/airports.php';
 if (($_SESSION['role'] ?? '') === 'admin') {
-    header('Location: /dbweb/admin/dashboard.php');
+    header('Location: /admin/dashboard.php');
     exit();
 }
 
@@ -32,8 +32,8 @@ if ($fromCode && $toCode && $date) {
     } else {
         $sql = "
             SELECT f.*, a.Airln_Name, a.Airln_Code
-            FROM Flight f
-            JOIN Airliner a ON f.Flght_AirlnID = a.Airln_ID
+            FROM flight f
+            JOIN airliner a ON f.Flght_AirlnID = a.Airln_ID
             WHERE f.Flght_Depart   = ?
               AND f.Flght_Arrival  = ?
               AND DATE(f.Flght_DepartDate) = ?
@@ -51,8 +51,8 @@ if ($fromCode && $toCode && $date) {
         if ($tripType === 'roundtrip' && $selectedOutId > 0) {
             $outStmt = $conn->prepare("
                 SELECT f.*, a.Airln_Name, a.Airln_Code
-                FROM Flight f
-                JOIN Airliner a ON f.Flght_AirlnID = a.Airln_ID
+                FROM flight f
+                JOIN airliner a ON f.Flght_AirlnID = a.Airln_ID
                 WHERE f.Flght_ID = ?
                 LIMIT 1
             ");
@@ -140,7 +140,7 @@ include '../layout/layout.php';
 <!-- ====== STICKY SEARCH BAR ====== -->
 <div style="position:sticky; top:74px; z-index:100; background:#0A1628; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06); box-shadow:0 4px 20px rgba(0,0,0,0.18);">
     <div class="container">
-        <form method="GET" action="/dbweb/flights/search.php" class="row g-2 align-items-end">
+        <form method="GET" action="/flights/search.php" class="row g-2 align-items-end">
             <input type="hidden" name="trip_type" value="<?= $tripType ?>">
 
             <div class="col-md-2">
@@ -253,7 +253,7 @@ include '../layout/layout.php';
                     <i class="bi bi-check-circle-fill me-2"></i>Outbound:
                     <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
                 </h6>
-                <a href="/dbweb/flights/search.php?<?= $baseParams ?>"
+                <a href="/flights/search.php?<?= $baseParams ?>"
                    class="btn btn-sm btn-outline-secondary" style="font-size:12px;">
                     <i class="bi bi-pencil me-1"></i>Change
                 </a>
@@ -324,7 +324,7 @@ include '../layout/layout.php';
             <?php foreach ($returnFlights as $f):
                 $retPricePerPax = (float)$f['Flght_Fare'] * $multiplier;
                 $combinedTotal  = ($outPricePerPax + $retPricePerPax) * $passengers;
-                $bookUrl = '/dbweb/flights/book.php?' . http_build_query([
+                $bookUrl = '/flights/book.php?' . http_build_query([
                     'flight_id'  => $selectedOutId,
                     'return_id'  => $f['Flght_ID'],
                     'passengers' => $passengers,
@@ -431,7 +431,7 @@ include '../layout/layout.php';
             <?php foreach ($flights as $f):
                 $pricePerPax = (float)$f['Flght_Fare'] * $multiplier;
                 $lowSeats    = $f['Flght_SeatAvail'] <= 7;
-                $selectUrl = '/dbweb/flights/search.php?' . $baseParams . '&out=' . $f['Flght_ID'];
+                $selectUrl = '/flights/search.php?' . $baseParams . '&out=' . $f['Flght_ID'];
             ?>
             <div class="trip-card mb-3 p-0 overflow-hidden flight-card-out"
                  data-price="<?= $pricePerPax ?>"
@@ -522,7 +522,7 @@ include '../layout/layout.php';
                 $pricePerPax = (float)$f['Flght_Fare'] * $multiplier;
                 $totalPrice  = $pricePerPax * $passengers;
                 $lowSeats    = $f['Flght_SeatAvail'] <= 7;
-                $bookUrl = '/dbweb/flights/book.php?' . http_build_query([
+                $bookUrl = '/flights/book.php?' . http_build_query([
                     'flight_id'  => $f['Flght_ID'],
                     'passengers' => $passengers,
                     'class'      => $class,

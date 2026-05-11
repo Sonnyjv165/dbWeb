@@ -1,18 +1,20 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 session_start();
 require_once '../config/db.php';
 require_once '../config/airports.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /dbweb/auth/login.php');
+    header('Location: /auth/login.php');
     exit();
 }
 
 // Stats
-$totalFlights  = $conn->query("SELECT COUNT(*) c FROM Flight WHERE Flght_Status='SCHEDULED'")->fetch_assoc()['c'];
-$totalBookings = $conn->query("SELECT COUNT(*) c FROM Booking WHERE Book_Status='CONFIRMED'")->fetch_assoc()['c'];
-$totalRevenue  = $conn->query("SELECT COALESCE(SUM(Book_Total),0) r FROM Booking WHERE Book_Status='CONFIRMED'")->fetch_assoc()['r'];
-$totalUsers    = $conn->query("SELECT COUNT(*) c FROM User WHERE User_Role='user'")->fetch_assoc()['c'];
+$totalFlights  = $conn->query("SELECT COUNT(*) c FROM flight WHERE Flght_Status='SCHEDULED'")->fetch_assoc()['c'];
+$totalBookings = $conn->query("SELECT COUNT(*) c FROM booking WHERE Book_Status='CONFIRMED'")->fetch_assoc()['c'];
+$totalRevenue  = $conn->query("SELECT COALESCE(SUM(Book_Total),0) r FROM booking WHERE Book_Status='CONFIRMED'")->fetch_assoc()['r'];
+$totalUsers    = $conn->query("SELECT COUNT(*) c FROM user WHERE User_Role='user'")->fetch_assoc()['c'];
 
 // Recent bookings
 $recent = $conn->query("
@@ -20,10 +22,10 @@ $recent = $conn->query("
            u.User_Name,
            MIN(f.Flght_Depart)  AS Flght_Depart,
            MIN(f.Flght_Arrival) AS Flght_Arrival
-    FROM Booking bk
-    JOIN User u            ON bk.Book_UserID   = u.User_ID
-    JOIN Bookingdetails bd ON bd.Bokde_BookID  = bk.Book_ID
-    JOIN Flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
+    FROM booking bk
+    JOIN user u            ON bk.Book_UserID   = u.User_ID
+    JOIN bookingdetails bd ON bd.Bokde_BookID  = bk.Book_ID
+    JOIN flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
     GROUP BY bk.Book_ID
     ORDER BY bk.Book_Date DESC
     LIMIT 8
@@ -41,8 +43,8 @@ include '../layout/layout.php';
             <p class="text-muted mb-0" style="font-size:14px;">Overview of the trip.com flight system</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <a href="/dbweb/admin/manage_flights.php"  class="btn btn-trip">Manage Flights</a>
-            <a href="/dbweb/admin/manage_bookings.php" class="btn btn-trip-outline">Manage Bookings</a>
+            <a href="/admin/manage_flights.php"  class="btn btn-trip">Manage Flights</a>
+            <a href="/admin/manage_bookings.php" class="btn btn-trip-outline">Manage Bookings</a>
         </div>
     </div>
 
@@ -78,7 +80,7 @@ include '../layout/layout.php';
     <div class="trip-card p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0">Recent Bookings</h6>
-            <a href="/dbweb/admin/manage_bookings.php" style="font-size:13px; color:#0086FF;">View all →</a>
+            <a href="/admin/manage_bookings.php" style="font-size:13px; color:#0086FF;">View all →</a>
         </div>
 
         <?php if (empty($recent)): ?>

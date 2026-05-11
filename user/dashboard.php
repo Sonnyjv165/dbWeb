@@ -4,11 +4,11 @@ require_once '../config/db.php';
 require_once '../config/airports.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /dbweb/auth/login.php');
+    header('Location: /auth/login.php');
     exit();
 }
 if (($_SESSION['role'] ?? '') === 'admin') {
-    header('Location: /dbweb/admin/dashboard.php');
+    header('Location: /admin/dashboard.php');
     exit();
 }
 
@@ -22,8 +22,8 @@ if (isset($_POST['cancel_booking'])) {
     $get = $conn->prepare("
         SELECT bk.Book_ID, bk.Book_Status, bd.Bokde_FlghtID,
                COUNT(DISTINCT bd.Bokde_Passenger) AS pax_count
-        FROM Booking bk
-        JOIN Bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
+        FROM booking bk
+        JOIN bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
         WHERE bk.Book_ID = ? AND bk.Book_UserID = ?
         GROUP BY bk.Book_ID, bk.Book_Status, bd.Bokde_FlghtID
     ");
@@ -34,12 +34,12 @@ if (isset($_POST['cancel_booking'])) {
     if (!empty($legRows) && $legRows[0]['Book_Status'] === 'CONFIRMED') {
         $conn->begin_transaction();
         try {
-            $conn->query("UPDATE Booking SET Book_Status='CANCELLED', Book_Pay='REFUNDED' WHERE Book_ID=$bId");
+            $conn->query("UPDATE booking SET Book_Status='CANCELLED', Book_Pay='REFUNDED' WHERE Book_ID=$bId");
             // Restore seats for every flight leg (handles both one-way and round trip)
             foreach ($legRows as $leg) {
-                $conn->query("UPDATE Flight SET Flght_SeatAvail = Flght_SeatAvail + {$leg['pax_count']} WHERE Flght_ID = {$leg['Bokde_FlghtID']}");
+                $conn->query("UPDATE flight SET Flght_SeatAvail = Flght_SeatAvail + {$leg['pax_count']} WHERE Flght_ID = {$leg['Bokde_FlghtID']}");
             }
-            $conn->query("UPDATE Payment SET Paymt_Status='REFUNDED' WHERE Paymt_BookID=$bId");
+            $conn->query("UPDATE payment SET Paymt_Status='REFUNDED' WHERE Paymt_BookID=$bId");
             $conn->commit();
             $_SESSION['flash_success'] = 'Booking cancelled successfully.';
         } catch (Exception $e) {
@@ -47,7 +47,7 @@ if (isset($_POST['cancel_booking'])) {
             $_SESSION['flash_error'] = 'Cancellation failed. Please try again.';
         }
     }
-    header('Location: /dbweb/user/dashboard.php');
+    header('Location: /user/dashboard.php');
     exit();
 }
 
@@ -59,17 +59,17 @@ $stmt = $conn->prepare("
            MIN(bd.Bokde_SeatClass)         AS Bokde_SeatClass,
            COUNT(DISTINCT bd.Bokde_Passenger) AS pax_count,
            COUNT(DISTINCT bd.Bokde_FlghtID)   AS leg_count
-    FROM Booking bk
-    JOIN Bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
-    JOIN Flight fl ON fl.Flght_ID = (
+    FROM booking bk
+    JOIN bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
+    JOIN flight fl ON fl.Flght_ID = (
         SELECT bd2.Bokde_FlghtID
-        FROM Bookingdetails bd2
-        JOIN Flight f2 ON f2.Flght_ID = bd2.Bokde_FlghtID
+        FROM bookingdetails bd2
+        JOIN flight f2 ON f2.Flght_ID = bd2.Bokde_FlghtID
         WHERE bd2.Bokde_BookID = bk.Book_ID
         ORDER BY f2.Flght_DepartDate ASC
         LIMIT 1
     )
-    JOIN Airliner al ON al.Airln_ID = fl.Flght_AirlnID
+    JOIN airliner al ON al.Airln_ID = fl.Flght_AirlnID
     WHERE bk.Book_UserID = ?
     GROUP BY bk.Book_ID, fl.Flght_ID
     ORDER BY bk.Book_Date DESC
@@ -128,7 +128,7 @@ include '../layout/layout.php';
 <div class="container py-4">
 
     <?php
-    $loyaltyRow = $conn->query("SELECT User_Loyalty FROM User WHERE User_ID=$userId")->fetch_assoc();
+    $loyaltyRow = $conn->query("SELECT User_Loyalty FROM user WHERE User_ID=$userId")->fetch_assoc();
     $userCoins  = (int)($loyaltyRow['User_Loyalty'] ?? 0);
     $tierNames  = [[20000,'Black Diamond'],[10000,'Diamond+'],[5000,'Diamond'],[2000,'Platinum'],[500,'Gold'],[0,'Silver']];
     $userTier   = 'Silver';
@@ -144,10 +144,10 @@ include '../layout/layout.php';
                     <i class="bi bi-coin me-1"></i><?= number_format($userCoins) ?> Trip Coins
                 </span>
                 &nbsp;·&nbsp;
-                <a href="/dbweb/user/profile.php" style="color:#0086FF; font-size:13px;"><?= $userTier ?> member ›</a>
+                <a href="/user/profile.php" style="color:#0086FF; font-size:13px;"><?= $userTier ?> member ›</a>
             </p>
         </div>
-        <a href="/dbweb/index.php" class="btn btn-trip-orange px-4">
+        <a href="/index.php" class="btn btn-trip-orange px-4">
             <i class="bi bi-airplane me-2"></i>Book a Flight
         </a>
     </div>
@@ -198,7 +198,7 @@ include '../layout/layout.php';
             <div style="font-size:56px; opacity:.18; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
             <h5 class="mt-3">No bookings yet</h5>
             <p style="font-size:14px;">Search and book your first flight to get started.</p>
-            <a href="/dbweb/index.php" class="btn btn-trip mt-2">Search Flights</a>
+            <a href="/index.php" class="btn btn-trip mt-2">Search Flights</a>
         </div>
     <?php else: ?>
         <?php $bi = 0; foreach ($myBookings as $b):
@@ -270,7 +270,7 @@ include '../layout/layout.php';
                                 ₱<?= number_format($b['Book_Total'], 2) ?>
                             </div>
                             <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
-                                <a href="/dbweb/flights/confirmation.php?ref=<?= urlencode($b['Book_Confirm']) ?>"
+                                <a href="/flights/confirmation.php?ref=<?= urlencode($b['Book_Confirm']) ?>"
                                    class="btn btn-sm btn-trip" style="font-size:12px;">View</a>
                                 <?php if ($b['Book_Status'] === 'CONFIRMED' && !$isPast): ?>
                                     <form method="POST" onsubmit="return confirm('Cancel this booking?')">

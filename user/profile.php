@@ -3,11 +3,11 @@ session_start();
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /dbweb/auth/login.php');
+    header('Location: /auth/login.php');
     exit();
 }
 if (($_SESSION['role'] ?? '') === 'admin') {
-    header('Location: /dbweb/admin/dashboard.php');
+    header('Location: /admin/dashboard.php');
     exit();
 }
 
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Full name cannot be empty.';
         } else {
             $st = $conn->prepare("
-                UPDATE User SET User_Name=?, User_PhoneNo=?, User_Nationality=?, User_DOB=?
+                UPDATE user SET User_Name=?, User_PhoneNo=?, User_Nationality=?, User_DOB=?
                 WHERE User_ID=?
             ");
             $dobVal = $dob ?: null;
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newPw   = $_POST['new_password']     ?? '';
         $confirm = $_POST['confirm_password'] ?? '';
 
-        $row = $conn->query("SELECT User_Password FROM User WHERE User_ID=$userId")->fetch_assoc();
+        $row = $conn->query("SELECT User_Password FROM user WHERE User_ID=$userId")->fetch_assoc();
 
         if (!password_verify($current, $row['User_Password'])) {
             $error = 'Current password is incorrect.';
@@ -54,14 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'New passwords do not match.';
         } else {
             $hash = password_hash($newPw, PASSWORD_DEFAULT);
-            $conn->prepare("UPDATE User SET User_Password=? WHERE User_ID=?")->execute([$hash, $userId]);
+            $conn->prepare("UPDATE user SET User_Password=? WHERE User_ID=?")->execute([$hash, $userId]);
             $success = 'Password changed successfully.';
         }
     }
 }
 
 // ── Fetch user ────────────────────────────────────────────────
-$user = $conn->query("SELECT * FROM User WHERE User_ID=$userId")->fetch_assoc();
+$user = $conn->query("SELECT * FROM user WHERE User_ID=$userId")->fetch_assoc();
 
 // ── Booking stats ─────────────────────────────────────────────
 $stats = $conn->query("
@@ -70,7 +70,7 @@ $stats = $conn->query("
         SUM(CASE WHEN Book_Status='CONFIRMED' THEN 1 END) AS confirmed,
         SUM(CASE WHEN Book_Status='CANCELLED' THEN 1 END) AS cancelled,
         SUM(CASE WHEN Book_Status='CONFIRMED' THEN Book_Total ELSE 0 END) AS total_spent
-    FROM Booking WHERE Book_UserID=$userId
+    FROM booking WHERE Book_UserID=$userId
 ")->fetch_assoc();
 
 // ── Membership tier ───────────────────────────────────────────
@@ -528,7 +528,7 @@ include '../layout/layout.php';
     </div>
 
     <div class="text-center">
-        <a href="/dbweb/user/dashboard.php" class="btn btn-trip px-4">
+        <a href="/user/dashboard.php" class="btn btn-trip px-4">
             <i class="bi bi-ticket-detailed me-2"></i>View My Bookings
         </a>
     </div>

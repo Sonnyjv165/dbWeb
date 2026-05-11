@@ -179,6 +179,19 @@ if (session_status() === PHP_SESSION_NONE) {
             box-shadow: 0 0 0 3px rgba(0, 119, 238, 0.10);
         }
 
+        /* ── HOLD-TO-REVEAL PASSWORD ── */
+        .pwd-wrap { position: relative; }
+        .pwd-wrap .form-control,
+        .pwd-wrap .cred-input { padding-right: 44px; }
+        .pwd-reveal-btn {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--trip-muted); cursor: pointer;
+            padding: 4px; font-size: 16px; line-height: 1;
+            user-select: none; -webkit-user-select: none;
+            transition: color 0.15s;
+        }
+        .pwd-reveal-btn:hover { color: var(--trip-text); }
+
         /* ── TABLE ── */
         .trip-table thead th {
             background: #f8f8f6;
@@ -228,12 +241,12 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="container">
 
         <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
-            <a class="navbar-brand-trip" href="/dbweb/admin/dashboard.php">
+            <a class="navbar-brand-trip" href="/admin/dashboard.php">
                 <span class="brand-trip">trip</span><span class="brand-dot">.</span><span class="brand-com">com</span>
                 <span style="font-size:11px; font-weight:700; background:#111; color:#fff; border-radius:4px; padding:2px 7px; margin-left:8px; letter-spacing:.4px; font-style:normal; font-family:var(--font-sans);">ADMIN</span>
             </a>
         <?php else: ?>
-            <a class="navbar-brand-trip" href="/dbweb/index.php">
+            <a class="navbar-brand-trip" href="/index.php">
                 <span class="brand-trip">trip</span><span class="brand-dot">.</span><span class="brand-com">com</span>
             </a>
         <?php endif; ?>
@@ -243,13 +256,13 @@ if (session_status() === PHP_SESSION_NONE) {
             <?php if (isset($_SESSION['user_id'])): ?>
 
                 <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
-                    <a href="/dbweb/admin/dashboard.php" class="nav-link">
+                    <a href="/admin/dashboard.php" class="nav-link">
                         <i class="bi bi-speedometer2 me-1"></i>Dashboard
                     </a>
-                    <a href="/dbweb/admin/manage_flights.php" class="nav-link">
+                    <a href="/admin/manage_flights.php" class="nav-link">
                         <i class="bi bi-airplane me-1"></i>Flights
                     </a>
-                    <a href="/dbweb/admin/manage_bookings.php" class="nav-link">
+                    <a href="/admin/manage_bookings.php" class="nav-link">
                         <i class="bi bi-journal-text me-1"></i>Bookings
                     </a>
                     <div class="dropdown ms-2">
@@ -264,19 +277,19 @@ if (session_status() === PHP_SESSION_NONE) {
                                 <div style="font-size:12px; color:#aaa;"><?= htmlspecialchars($_SESSION['user_email'] ?? '') ?></div>
                             </li>
                             <li><hr class="dropdown-divider my-1"></li>
-                            <li><a class="dropdown-item" href="/dbweb/admin/dashboard.php"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                            <li><a class="dropdown-item" href="/dbweb/admin/manage_flights.php"><i class="bi bi-airplane me-2"></i>Manage Flights</a></li>
-                            <li><a class="dropdown-item" href="/dbweb/admin/manage_bookings.php"><i class="bi bi-journal-text me-2"></i>Manage Bookings</a></li>
+                            <li><a class="dropdown-item" href="/admin/dashboard.php"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                            <li><a class="dropdown-item" href="/admin/manage_flights.php"><i class="bi bi-airplane me-2"></i>Manage Flights</a></li>
+                            <li><a class="dropdown-item" href="/admin/manage_bookings.php"><i class="bi bi-journal-text me-2"></i>Manage Bookings</a></li>
                             <li><hr class="dropdown-divider my-1"></li>
-                            <li><a class="dropdown-item text-danger" href="/dbweb/auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                            <li><a class="dropdown-item text-danger" href="/auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
                         </ul>
                     </div>
 
                 <?php else: ?>
-                    <a href="/dbweb/flights/search.php" class="nav-link">
+                    <a href="/flights/search.php" class="nav-link">
                         <i class="bi bi-airplane me-1"></i>Flights
                     </a>
-                    <a href="/dbweb/user/dashboard.php" class="nav-link">
+                    <a href="/user/dashboard.php" class="nav-link">
                         <i class="bi bi-ticket-detailed me-1"></i>My Bookings
                     </a>
                     <div class="dropdown ms-2">
@@ -291,7 +304,7 @@ if (session_status() === PHP_SESSION_NONE) {
                                 <?php
                                 if (isset($_SESSION['user_id'])) {
                                     global $conn;
-                                    $loyaltyRow = $conn->query("SELECT User_Loyalty FROM User WHERE User_ID=" . (int)$_SESSION['user_id'])->fetch_assoc();
+                                    $loyaltyRow = $conn->query("SELECT User_Loyalty FROM user WHERE User_ID=" . (int)$_SESSION['user_id'])->fetch_assoc();
                                     $loyaltyPts = $loyaltyRow['User_Loyalty'] ?? 0;
                                 }
                                 ?>
@@ -300,17 +313,17 @@ if (session_status() === PHP_SESSION_NONE) {
                                 </div>
                             </li>
                             <li><hr class="dropdown-divider my-1"></li>
-                            <li><a class="dropdown-item" href="/dbweb/user/profile.php"><i class="bi bi-person-circle me-2"></i>My Profile</a></li>
-                            <li><a class="dropdown-item" href="/dbweb/user/dashboard.php"><i class="bi bi-ticket-detailed me-2"></i>My Bookings</a></li>
+                            <li><a class="dropdown-item" href="/user/profile.php"><i class="bi bi-person-circle me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="/user/dashboard.php"><i class="bi bi-ticket-detailed me-2"></i>My Bookings</a></li>
                             <li><hr class="dropdown-divider my-1"></li>
-                            <li><a class="dropdown-item text-danger" href="/dbweb/auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                            <li><a class="dropdown-item text-danger" href="/auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
                         </ul>
                     </div>
                 <?php endif; ?>
 
             <?php else: ?>
-                <a href="/dbweb/auth/login.php"    class="btn btn-trip-outline">Sign In</a>
-                <a href="/dbweb/auth/register.php" class="btn btn-trip ms-1">Register</a>
+                <a href="/auth/login.php"    class="btn btn-trip-outline">Sign In</a>
+                <a href="/auth/register.php" class="btn btn-trip ms-1">Register</a>
             <?php endif; ?>
 
         </div>
@@ -325,4 +338,15 @@ if (session_status() === PHP_SESSION_NONE) {
         nav.classList.toggle('nav-scrolled', window.scrollY > 20);
     }, { passive: true });
 })();
+
+function initHoldReveal(inputEl, btnEl) {
+    function show() { inputEl.type = 'text'; }
+    function hide() { inputEl.type = 'password'; }
+    btnEl.addEventListener('mousedown', show);
+    btnEl.addEventListener('touchstart', show, { passive: true });
+    btnEl.addEventListener('mouseup', hide);
+    btnEl.addEventListener('touchend', hide);
+    btnEl.addEventListener('mouseleave', hide);
+    btnEl.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+}
 </script>

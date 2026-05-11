@@ -5,12 +5,12 @@ require_once '../config/db.php';
 require_once '../config/airports.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /dbweb/auth/login.php');
+    header('Location: /auth/login.php');
     exit();
 }
 
 // Load airlines for selects
-$airlinerOpts = $conn->query("SELECT * FROM Airliner WHERE Airln_Status='ACTIVE' ORDER BY Airln_Name")->fetch_all(MYSQLI_ASSOC);
+$airlinerOpts = $conn->query("SELECT * FROM airliner WHERE Airln_Status='ACTIVE' ORDER BY Airln_Name")->fetch_all(MYSQLI_ASSOC);
 
 // ── ADD FLIGHT ────────────────────────────────────────────────
 if (isset($_POST['add_flight'])) {
@@ -24,7 +24,7 @@ if (isset($_POST['add_flight'])) {
     $seats   = (int)$_POST['total_seats'];
 
     $st = $conn->prepare("
-        INSERT INTO Flight (Flght_AirlnID, Flght_No, Flght_Depart, Flght_Arrival, Flght_DepartDate, Flght_ArriveDate, Flght_SeatAvail, Flght_Fare, Flght_TotalSeats)
+        INSERT INTO flight (Flght_AirlnID, Flght_No, Flght_Depart, Flght_Arrival, Flght_DepartDate, Flght_ArriveDate, Flght_SeatAvail, Flght_Fare, Flght_TotalSeats)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $st->bind_param('isssssdii', $airlnId, $flghtNo, $depart, $arrival, $depDate, $arrDate, $fare, $seats, $seats);
@@ -33,7 +33,7 @@ if (isset($_POST['add_flight'])) {
     } else {
         $_SESSION['flash'] = ['type'=>'danger','msg'=>'Failed to add flight: ' . $conn->error];
     }
-    header('Location: /dbweb/admin/manage_flights.php');
+    header('Location: /admin/manage_flights.php');
     exit();
 }
 
@@ -51,7 +51,7 @@ if (isset($_POST['edit_flight'])) {
     $avail   = (int)$_POST['edit_seat_avail'];
 
     $st = $conn->prepare("
-        UPDATE Flight
+        UPDATE flight
         SET Flght_AirlnID=?, Flght_No=?, Flght_Depart=?, Flght_Arrival=?,
             Flght_DepartDate=?, Flght_ArriveDate=?, Flght_Fare=?,
             Flght_TotalSeats=?, Flght_SeatAvail=?
@@ -63,37 +63,37 @@ if (isset($_POST['edit_flight'])) {
     } else {
         $_SESSION['flash'] = ['type'=>'danger','msg'=>'Update failed: ' . $conn->error];
     }
-    header('Location: /dbweb/admin/manage_flights.php');
+    header('Location: /admin/manage_flights.php');
     exit();
 }
 
 // ── CANCEL FLIGHT ─────────────────────────────────────────────
 if (isset($_GET['cancel'])) {
     $fid = (int)$_GET['cancel'];
-    $st  = $conn->prepare("UPDATE Flight SET Flght_Status='CANCELLED' WHERE Flght_ID=?");
+    $st  = $conn->prepare("UPDATE flight SET Flght_Status='CANCELLED' WHERE Flght_ID=?");
     $st->bind_param('i', $fid);
     $st->execute();
     $_SESSION['flash'] = ['type'=>'warning','msg'=>'Flight cancelled.'];
-    header('Location: /dbweb/admin/manage_flights.php');
+    header('Location: /admin/manage_flights.php');
     exit();
 }
 
 // ── RESTORE FLIGHT ────────────────────────────────────────────
 if (isset($_GET['restore'])) {
     $fid = (int)$_GET['restore'];
-    $st  = $conn->prepare("UPDATE Flight SET Flght_Status='SCHEDULED' WHERE Flght_ID=?");
+    $st  = $conn->prepare("UPDATE flight SET Flght_Status='SCHEDULED' WHERE Flght_ID=?");
     $st->bind_param('i', $fid);
     $st->execute();
     $_SESSION['flash'] = ['type'=>'success','msg'=>'Flight restored to scheduled.'];
-    header('Location: /dbweb/admin/manage_flights.php');
+    header('Location: /admin/manage_flights.php');
     exit();
 }
 
 // Fetch all flights
 $flights = $conn->query("
     SELECT f.*, a.Airln_Name, a.Airln_Code
-    FROM Flight f
-    JOIN Airliner a ON f.Flght_AirlnID = a.Airln_ID
+    FROM flight f
+    JOIN airliner a ON f.Flght_AirlnID = a.Airln_ID
     ORDER BY f.Flght_DepartDate DESC
 ")->fetch_all(MYSQLI_ASSOC);
 
@@ -106,7 +106,7 @@ include '../layout/layout.php';
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h4 class="fw-bold mb-0">Manage Flights</h4>
-            <a href="/dbweb/admin/dashboard.php" style="font-size:13px; color:#0086FF;">← Back to Dashboard</a>
+            <a href="/admin/dashboard.php" style="font-size:13px; color:#0086FF;">← Back to Dashboard</a>
         </div>
         <button class="btn btn-trip" data-bs-toggle="modal" data-bs-target="#addFlightModal">
             <i class="bi bi-plus-circle me-2"></i>Add Flight

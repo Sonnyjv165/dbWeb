@@ -3,7 +3,7 @@ session_start();
 require_once '../config/db.php';
 
 if (isset($_SESSION['user_id'])) {
-    header('Location: /dbweb/index.php');
+    header('Location: /index.php');
     exit();
 }
 
@@ -13,7 +13,7 @@ if (isset($_POST['login'])) {
     $email    = trim($_POST['email']);
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM User WHERE User_Email = ? AND User_Status = 'ACTIVE' LIMIT 1");
+    $stmt = $conn->prepare("SELECT * FROM user WHERE User_Email = ? AND User_Status = 'ACTIVE' LIMIT 1");
     $stmt->bind_param('s', $email);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
@@ -24,7 +24,7 @@ if (isset($_POST['login'])) {
         $_SESSION['user_email'] = $user['User_Email'];
         $_SESSION['role']       = $user['User_Role'];
 
-        header('Location: ' . ($user['User_Role'] === 'admin' ? '/dbweb/admin/dashboard.php' : '/dbweb/index.php'));
+        header('Location: ' . ($user['User_Role'] === 'admin' ? '/admin/dashboard.php' : '/index.php'));
         exit();
     } else {
         $error = 'Invalid email or password.';
@@ -61,8 +61,13 @@ include '../layout/layout.php';
             </div>
             <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:14px;">Password</label>
-                <input type="password" name="password" class="form-control"
-                       placeholder="Enter password" required>
+                <div class="pwd-wrap">
+                    <input type="password" name="password" id="loginPwd" class="form-control"
+                           placeholder="Enter password" required>
+                    <button type="button" class="pwd-reveal-btn" id="loginPwdBtn" title="Hold to reveal">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
             </div>
             <button type="submit" name="login" class="btn btn-trip w-100" style="padding:11px;">
                 Sign In
@@ -72,7 +77,7 @@ include '../layout/layout.php';
         <hr class="my-3">
         <p class="text-center mb-0" style="font-size:14px;">
             Don't have an account?
-            <a href="/dbweb/auth/register.php" style="color:#0086FF; font-weight:600;">Register</a>
+            <a href="/auth/register.php" style="color:#0086FF; font-weight:600;">Register</a>
         </p>
 
         <p class="text-center mt-2 text-muted" style="font-size:12px;">
@@ -81,4 +86,7 @@ include '../layout/layout.php';
     </div>
 </div>
 
+<script>
+initHoldReveal(document.getElementById('loginPwd'), document.getElementById('loginPwdBtn'));
+</script>
 <?php include '../layout/footer.php'; ?>

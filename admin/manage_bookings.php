@@ -4,7 +4,7 @@ require_once '../config/db.php';
 require_once '../config/airports.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /dbweb/auth/login.php');
+    header('Location: /auth/login.php');
     exit();
 }
 
@@ -14,8 +14,8 @@ if (isset($_GET['cancel'])) {
 
     $get = $conn->prepare("
         SELECT bk.Book_ID, bk.Book_Status, bd.Bokde_FlghtID, COUNT(bd.Bokde_ID) AS pax_count
-        FROM Booking bk
-        JOIN Bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
+        FROM booking bk
+        JOIN bookingdetails bd ON bd.Bokde_BookID = bk.Book_ID
         WHERE bk.Book_ID = ? AND bk.Book_Status = 'CONFIRMED'
         GROUP BY bk.Book_ID, bk.Book_Status, bd.Bokde_FlghtID
     ");
@@ -26,9 +26,9 @@ if (isset($_GET['cancel'])) {
     if ($bRow) {
         $conn->begin_transaction();
         try {
-            $conn->query("UPDATE Booking SET Book_Status='CANCELLED', Book_Pay='REFUNDED' WHERE Book_ID=$bId");
-            $conn->query("UPDATE Flight SET Flght_SeatAvail = Flght_SeatAvail + {$bRow['pax_count']} WHERE Flght_ID = {$bRow['Bokde_FlghtID']}");
-            $conn->query("UPDATE Payment SET Paymt_Status='REFUNDED' WHERE Paymt_BookID=$bId");
+            $conn->query("UPDATE booking SET Book_Status='CANCELLED', Book_Pay='REFUNDED' WHERE Book_ID=$bId");
+            $conn->query("UPDATE flight SET Flght_SeatAvail = Flght_SeatAvail + {$bRow['pax_count']} WHERE Flght_ID = {$bRow['Bokde_FlghtID']}");
+            $conn->query("UPDATE payment SET Paymt_Status='REFUNDED' WHERE Paymt_BookID=$bId");
             $conn->commit();
             $_SESSION['flash'] = ['type'=>'warning','msg'=>'Booking cancelled.'];
         } catch (Exception $e) {
@@ -36,7 +36,7 @@ if (isset($_GET['cancel'])) {
             $_SESSION['flash'] = ['type'=>'danger','msg'=>'Failed to cancel booking.'];
         }
     }
-    header('Location: /dbweb/admin/manage_bookings.php');
+    header('Location: /admin/manage_bookings.php');
     exit();
 }
 
@@ -54,11 +54,11 @@ $bookings = $conn->query("
            MIN(a.Airln_Code)       AS Airln_Code,
            MIN(bd.Bokde_SeatClass) AS Bokde_SeatClass,
            COUNT(bd.Bokde_ID)      AS pax_count
-    FROM Booking bk
-    JOIN User u            ON bk.Book_UserID   = u.User_ID
-    JOIN Bookingdetails bd ON bd.Bokde_BookID  = bk.Book_ID
-    JOIN Flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
-    JOIN Airliner a        ON a.Airln_ID       = f.Flght_AirlnID
+    FROM booking bk
+    JOIN user u            ON bk.Book_UserID   = u.User_ID
+    JOIN bookingdetails bd ON bd.Bokde_BookID  = bk.Book_ID
+    JOIN flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
+    JOIN airliner a        ON a.Airln_ID       = f.Flght_AirlnID
     $whereClause
     GROUP BY bk.Book_ID
     ORDER BY bk.Book_Date DESC
@@ -75,7 +75,7 @@ include '../layout/layout.php';
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h4 class="fw-bold mb-0">Manage Bookings</h4>
-            <a href="/dbweb/admin/dashboard.php" style="font-size:13px; color:#0086FF;">← Back to Dashboard</a>
+            <a href="/admin/dashboard.php" style="font-size:13px; color:#0086FF;">← Back to Dashboard</a>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <?php foreach (['all'=>'All','confirmed'=>'Confirmed','cancelled'=>'Cancelled'] as $val => $lbl): ?>

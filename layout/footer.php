@@ -32,9 +32,9 @@
                 <ul style="list-style:none; padding:0; margin:0;">
                     <?php
                     $footerAdmin = [
-                        ['Dashboard',       '/dbweb/admin/dashboard.php'],
-                        ['Manage Flights',  '/dbweb/admin/manage_flights.php'],
-                        ['Manage Bookings', '/dbweb/admin/manage_bookings.php'],
+                        ['Dashboard',       '/admin/dashboard.php'],
+                        ['Manage Flights',  '/admin/manage_flights.php'],
+                        ['Manage Bookings', '/admin/manage_bookings.php'],
                     ];
                     foreach ($footerAdmin as [$label, $href]):
                     ?>
@@ -63,7 +63,7 @@
                     foreach ($footerRoutes as [$label, $from, $to]):
                     ?>
                     <li style="margin-bottom:9px;">
-                        <a href="/dbweb/flights/search.php?from=<?= $from ?>&to=<?= $to ?>&date=<?= $fd ?>&passengers=1&class=economy&trip_type=oneway"
+                        <a href="/flights/search.php?from=<?= $from ?>&to=<?= $to ?>&date=<?= $fd ?>&passengers=1&class=economy&trip_type=oneway"
                            style="font-size:13px; color:#6B6B6B; text-decoration:none; transition:color .15s;"
                            onmouseover="this.style.color='#0086FF'" onmouseout="this.style.color='#6B6B6B'">
                             <?= $label ?>
@@ -81,8 +81,8 @@
                 <ul style="list-style:none; padding:0; margin:0;">
                     <?php
                     $footerAdminAcct = [
-                        ['Admin Dashboard', '/dbweb/admin/dashboard.php'],
-                        ['Sign Out',        '/dbweb/auth/logout.php'],
+                        ['Admin Dashboard', '/admin/dashboard.php'],
+                        ['Sign Out',        '/auth/logout.php'],
                     ];
                     foreach ($footerAdminAcct as [$label, $href]):
                     ?>
@@ -101,15 +101,15 @@
                     <?php
                     $footerAcct = isset($_SESSION['user_id'])
                         ? [
-                            ['My Bookings',   '/dbweb/user/dashboard.php'],
-                            ['My Profile',    '/dbweb/user/profile.php'],
-                            ['Search Flights','/dbweb/index.php'],
-                            ['Sign Out',      '/dbweb/auth/logout.php'],
+                            ['My Bookings',   '/user/dashboard.php'],
+                            ['My Profile',    '/user/profile.php'],
+                            ['Search Flights','/index.php'],
+                            ['Sign Out',      '/auth/logout.php'],
                           ]
                         : [
-                            ['Sign In',       '/dbweb/auth/login.php'],
-                            ['Register',      '/dbweb/auth/register.php'],
-                            ['Search Flights','/dbweb/index.php'],
+                            ['Sign In',       '/auth/login.php'],
+                            ['Register',      '/auth/register.php'],
+                            ['Search Flights','/index.php'],
                           ];
                     foreach ($footerAcct as [$label, $href]):
                     ?>
@@ -148,6 +148,44 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Developer Card -->
+    <div style="border-top:1px solid #eee; padding:48px 0 40px;">
+        <div class="container">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#aaa; margin-bottom:24px; text-align:center;">About the Developer</div>
+            <div style="max-width:680px; margin:0 auto; background:#FAFAF8; border:1px solid rgba(0,0,0,0.07); border-radius:20px; padding:32px; display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;">
+
+                <!-- Photo -->
+                <div style="flex-shrink:0;">
+                    <img src="/assets/nash.jpg" alt="Nash T. Riobuya"
+                         style="width:88px; height:88px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 2px 12px rgba(0,0,0,0.10);">
+                </div>
+
+                <!-- Info -->
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-family:var(--font-serif); font-size:20px; font-weight:600; letter-spacing:-0.02em; color:#111; margin-bottom:4px;">Nash T. Riobuya</div>
+                    <div style="font-size:13px; color:var(--trip-muted); margin-bottom:2px;">
+                        <i class="bi bi-mortarboard-fill me-1" style="color:var(--trip-blue);"></i>BSIT &mdash; 3A &nbsp;&middot;&nbsp; 3rd Year
+                    </div>
+                    <div style="font-size:13px; color:var(--trip-muted); margin-bottom:14px;">
+                        <i class="bi bi-building me-1" style="color:var(--trip-blue);"></i>University of Cebu
+                    </div>
+                    <div style="font-size:13px; color:#555; line-height:1.6; margin-bottom:18px;">
+                        Passionate about making games, web development, and Android application creation.
+                    </div>
+
+                    <!-- Quote -->
+                    <div style="border-left:3px solid var(--trip-orange); padding-left:14px;">
+                        <div style="font-family:var(--font-serif); font-style:italic; font-size:13px; color:#444; line-height:1.7;">
+                            "Computer science education cannot make anybody an expert programmer any more than studying brushes and pigment can make somebody an expert painter."
+                        </div>
+                        <div style="font-size:11px; font-weight:700; color:var(--trip-muted); margin-top:6px; letter-spacing:0.05em;">— Eric S. Raymond</div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 

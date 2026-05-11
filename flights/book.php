@@ -4,11 +4,11 @@ require_once '../config/db.php';
 require_once '../config/airports.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /dbweb/auth/login.php');
+    header('Location: /auth/login.php');
     exit();
 }
 if (($_SESSION['role'] ?? '') === 'admin') {
-    header('Location: /dbweb/admin/dashboard.php');
+    header('Location: /admin/dashboard.php');
     exit();
 }
 
@@ -23,8 +23,8 @@ $seatClass  = strtoupper($class);
 // Fetch outbound flight
 $stmt = $conn->prepare("
     SELECT f.*, a.Airln_Name, a.Airln_Code
-    FROM Flight f
-    JOIN Airliner a ON f.Flght_AirlnID = a.Airln_ID
+    FROM flight f
+    JOIN airliner a ON f.Flght_AirlnID = a.Airln_ID
     WHERE f.Flght_ID = ? AND f.Flght_Status = 'SCHEDULED'
     LIMIT 1
 ");
@@ -33,7 +33,7 @@ $stmt->execute();
 $flight = $stmt->get_result()->fetch_assoc();
 
 if (!$flight) {
-    header('Location: /dbweb/flights/search.php');
+    header('Location: /flights/search.php');
     exit();
 }
 
@@ -42,8 +42,8 @@ $returnFlight = null;
 if ($returnId > 0) {
     $stmt2 = $conn->prepare("
         SELECT f.*, a.Airln_Name, a.Airln_Code
-        FROM Flight f
-        JOIN Airliner a ON f.Flght_AirlnID = a.Airln_ID
+        FROM flight f
+        JOIN airliner a ON f.Flght_AirlnID = a.Airln_ID
         WHERE f.Flght_ID = ? AND f.Flght_Status = 'SCHEDULED'
         LIMIT 1
     ");
@@ -68,7 +68,7 @@ $promoId  = null;
 $departIn = strtotime($flight['Flght_DepartDate']) - time();
 if ($departIn < 7200) {
     $_SESSION['flash_error'] = 'This flight departs within 2 hours and can no longer be booked online. Please contact the airline directly.';
-    header('Location: /dbweb/flights/search.php');
+    header('Location: /flights/search.php');
     exit();
 }
 
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
     // Validate promo code
     if ($promoCode !== '') {
         $pr = $conn->prepare("
-            SELECT * FROM Promotion
+            SELECT * FROM promotion
             WHERE Promo_Code = ?
               AND NOW() BETWEEN Promo_ValidFrom AND Promo_ValidTo
             LIMIT 1
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
         $conn->begin_transaction();
         try {
             // Lock rows and check seat availability on both flights
-            $chk = $conn->prepare("SELECT Flght_SeatAvail FROM Flight WHERE Flght_ID = ? FOR UPDATE");
+            $chk = $conn->prepare("SELECT Flght_SeatAvail FROM flight WHERE Flght_ID = ? FOR UPDATE");
             $chk->bind_param('i', $flightId);
             $chk->execute();
             $outSeats = $chk->get_result()->fetch_assoc()['Flght_SeatAvail'];
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
             }
 
             if ($isRoundTrip) {
-                $chk2 = $conn->prepare("SELECT Flght_SeatAvail FROM Flight WHERE Flght_ID = ? FOR UPDATE");
+                $chk2 = $conn->prepare("SELECT Flght_SeatAvail FROM flight WHERE Flght_ID = ? FOR UPDATE");
                 $chk2->bind_param('i', $returnId);
                 $chk2->execute();
                 $retSeats = $chk2->get_result()->fetch_assoc()['Flght_SeatAvail'];
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
             // Insert Booking
             $bookConfirm = 'TR' . strtoupper(bin2hex(random_bytes(4)));
             $b = $conn->prepare("
-                INSERT INTO Booking (Book_UserID, Book_Date, Book_Status, Book_Total, Book_Pay, Book_Confirm, Book_PromoID)
+                INSERT INTO booking (Book_UserID, Book_Date, Book_Status, Book_Total, Book_Pay, Book_Confirm, Book_PromoID)
                 VALUES (?, NOW(), 'CONFIRMED', ?, 'PAID', ?, ?)
             ");
             $b->bind_param('idsi', $_SESSION['user_id'], $finalTotal, $bookConfirm, $promoId);
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
 
             // Insert Bookingdetails: each passenger × each flight leg
             $bd = $conn->prepare("
-                INSERT INTO Bookingdetails (Bokde_BookID, Bokde_FlghtID, Bokde_Passenger, Bokde_SeatClass, Bokde_Ticket)
+                INSERT INTO bookingdetails (Bokde_BookID, Bokde_FlghtID, Bokde_Passenger, Bokde_SeatClass, Bokde_Ticket)
                 VALUES (?, ?, ?, ?, ?)
             ");
 
@@ -160,33 +160,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
             // Insert Payment
             $txn = 'TXN' . strtoupper(bin2hex(random_bytes(5)));
             $py  = $conn->prepare("
-                INSERT INTO Payment (Paymt_BookID, Paymt_Method, Paymt_Date, Paymt_Amt, Paymt_Status, Paymt_Transaction)
+                INSERT INTO payment (Paymt_BookID, Paymt_Method, Paymt_Date, Paymt_Amt, Paymt_Status, Paymt_Transaction)
                 VALUES (?, ?, NOW(), ?, 'SUCCESS', ?)
             ");
             $py->bind_param('isds', $bookId, $payMethod, $finalTotal, $txn);
             $py->execute();
 
             // Decrement seats on outbound (and return) flight
-            $conn->query("UPDATE Flight SET Flght_SeatAvail = Flght_SeatAvail - $passengers WHERE Flght_ID = $flightId");
+            $conn->query("UPDATE flight SET Flght_SeatAvail = Flght_SeatAvail - $passengers WHERE Flght_ID = $flightId");
             if ($isRoundTrip) {
-                $conn->query("UPDATE Flight SET Flght_SeatAvail = Flght_SeatAvail - $passengers WHERE Flght_ID = $returnId");
+                $conn->query("UPDATE flight SET Flght_SeatAvail = Flght_SeatAvail - $passengers WHERE Flght_ID = $returnId");
             }
 
             // Increment promo usage
             if ($promoId) {
-                $conn->query("UPDATE Promotion SET Promo_Usage = Promo_Usage + 1 WHERE Promo_ID = $promoId");
+                $conn->query("UPDATE promotion SET Promo_Usage = Promo_Usage + 1 WHERE Promo_ID = $promoId");
             }
 
             // Award Trip Coins: 1 per ₱100 spent — not awarded when a promo discount was applied
             if (!$promoId) {
                 $coinsEarned = (int)floor($finalTotal / 100);
                 if ($coinsEarned > 0) {
-                    $conn->query("UPDATE User SET User_Loyalty = User_Loyalty + $coinsEarned WHERE User_ID = {$_SESSION['user_id']}");
+                    $conn->query("UPDATE user SET User_Loyalty = User_Loyalty + $coinsEarned WHERE User_ID = {$_SESSION['user_id']}");
                 }
             }
 
             $conn->commit();
-            header("Location: /dbweb/flights/confirmation.php?ref=" . urlencode($bookConfirm) . "&coins=" . ($coinsEarned ?? 0));
+            header("Location: /flights/confirmation.php?ref=" . urlencode($bookConfirm) . "&coins=" . ($coinsEarned ?? 0));
             exit();
 
         } catch (Exception $e) {
@@ -237,12 +237,54 @@ include '../layout/layout.php';
 .book-crumb a { color: var(--trip-blue); font-size: 13px; text-decoration: none; }
 .book-crumb a:hover { text-decoration: underline; }
 .book-crumb span { color: var(--trip-muted); font-size: 13px; }
+
+/* ── Payment method buttons ── */
+.pay-methods { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+.pay-btn {
+    display: flex; align-items: center; gap: 9px;
+    padding: 10px 18px; border-radius: 10px; cursor: pointer;
+    border: 1.5px solid var(--trip-border);
+    background: #fff; color: var(--trip-text);
+    font-size: 13px; font-weight: 600; font-family: var(--font-sans);
+    transition: all 0.18s cubic-bezier(0.32,0.72,0,1);
+}
+.pay-btn:hover { border-color: rgba(0,0,0,0.22); background: var(--trip-bg); }
+.pay-btn.active {
+    border-color: var(--trip-text);
+    background: var(--trip-text);
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.pay-btn .pay-icon { font-size: 16px; line-height: 1; }
+
+/* ── Credential fields ── */
+.cred-section { display: none; }
+.cred-section.active { display: block; }
+.cred-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--trip-muted); margin-bottom: 5px; display: block;
+}
+.cred-input {
+    font-family: var(--font-sans); font-size: 14px;
+    border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px;
+    padding: 10px 14px; width: 100%; background: #fff; color: var(--trip-text);
+    transition: border-color 0.15s;
+    outline: none;
+}
+.cred-input:focus { border-color: var(--trip-blue); box-shadow: 0 0 0 3px rgba(0,119,238,0.10); }
+.cred-input.mono { font-family: 'SF Mono', 'Menlo', monospace; letter-spacing: 0.05em; }
+.card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.security-note {
+    display: flex; align-items: center; gap: 8px; margin-top: 16px;
+    background: var(--trip-bg); border-radius: 8px; padding: 10px 14px;
+    font-size: 12px; color: var(--trip-muted); border: 1px solid var(--trip-border);
+}
 </style>
 
 <div class="container py-4">
 
     <nav class="book-crumb mb-3">
-        <a href="/dbweb/index.php">Home</a> ›
+        <a href="/index.php">Home</a> ›
         <a href="javascript:history.back()">Search Results</a> ›
         <span>Booking</span>
     </nav>
@@ -373,25 +415,149 @@ include '../layout/layout.php';
 
             <!-- Payment -->
             <div class="trip-card p-4 mb-4">
-                <h6 class="fw-bold mb-3">Payment Method</h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <select name="pay_method" class="form-select">
-                            <option value="Credit Card">Credit Card</option>
-                            <option value="Debit Card">Debit Card</option>
-                            <option value="GCash">GCash</option>
-                            <option value="Maya">Maya</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
+                <h6 style="font-family:var(--font-serif); font-weight:600; font-size:16px; letter-spacing:-0.02em; margin-bottom:18px;">
+                    Payment Details
+                </h6>
+
+                <!-- Hidden field sent with form POST -->
+                <input type="hidden" name="pay_method" id="payMethodInput"
+                       value="<?= htmlspecialchars($_POST['pay_method'] ?? 'Credit Card') ?>">
+
+                <!-- Method selector -->
+                <div class="pay-methods">
+                    <button type="button" class="pay-btn <?= ($_POST['pay_method'] ?? 'Credit Card') === 'Credit Card' ? 'active' : '' ?>"
+                            onclick="selectPayMethod('Credit Card', this)">
+                        <i class="bi bi-credit-card pay-icon"></i> Credit Card
+                    </button>
+                    <button type="button" class="pay-btn <?= ($_POST['pay_method'] ?? '') === 'Debit Card' ? 'active' : '' ?>"
+                            onclick="selectPayMethod('Debit Card', this)">
+                        <i class="bi bi-credit-card-2-front pay-icon"></i> Debit Card
+                    </button>
+                    <button type="button" class="pay-btn <?= ($_POST['pay_method'] ?? '') === 'GCash' ? 'active' : '' ?>"
+                            onclick="selectPayMethod('GCash', this)">
+                        <i class="bi bi-phone pay-icon"></i> GCash
+                    </button>
+                    <button type="button" class="pay-btn <?= ($_POST['pay_method'] ?? '') === 'Maya' ? 'active' : '' ?>"
+                            onclick="selectPayMethod('Maya', this)">
+                        <i class="bi bi-phone-vibrate pay-icon"></i> Maya
+                    </button>
+                    <button type="button" class="pay-btn <?= ($_POST['pay_method'] ?? '') === 'Bank Transfer' ? 'active' : '' ?>"
+                            onclick="selectPayMethod('Bank Transfer', this)">
+                        <i class="bi bi-bank pay-icon"></i> Bank Transfer
+                    </button>
+                </div>
+
+                <!-- ── Credit / Debit Card fields ── -->
+                <div id="creds-card" class="cred-section <?= in_array($_POST['pay_method'] ?? 'Credit Card', ['Credit Card','Debit Card']) ? 'active' : '' ?>">
+                    <div class="mb-3">
+                        <label class="cred-label">Card Number</label>
+                        <input type="text" id="cardNumber" name="card_number" class="cred-input mono"
+                               placeholder="0000  0000  0000  0000" maxlength="22"
+                               value="<?= htmlspecialchars($_POST['card_number'] ?? '') ?>"
+                               autocomplete="cc-number" inputmode="numeric">
+                    </div>
+                    <div class="mb-3">
+                        <label class="cred-label">Cardholder Name</label>
+                        <input type="text" name="card_name" class="cred-input"
+                               placeholder="Name exactly as on card"
+                               value="<?= htmlspecialchars($_POST['card_name'] ?? '') ?>"
+                               autocomplete="cc-name" style="text-transform:uppercase;">
+                    </div>
+                    <div class="card-row mb-2">
+                        <div>
+                            <label class="cred-label">Expiry Date</label>
+                            <input type="text" id="cardExpiry" name="card_expiry" class="cred-input mono"
+                                   placeholder="MM / YY" maxlength="7"
+                                   value="<?= htmlspecialchars($_POST['card_expiry'] ?? '') ?>"
+                                   autocomplete="cc-exp" inputmode="numeric">
+                        </div>
+                        <div>
+                            <label class="cred-label">CVV</label>
+                            <div class="pwd-wrap">
+                                <input type="password" name="card_cvv" id="cardCvv" class="cred-input mono"
+                                       placeholder="&bull;&bull;&bull;" maxlength="4"
+                                       value="<?= htmlspecialchars($_POST['card_cvv'] ?? '') ?>"
+                                       autocomplete="cc-csc" inputmode="numeric">
+                                <button type="button" class="pwd-reveal-btn" id="cardCvvBtn" title="Hold to reveal">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="security-note">
+                        <i class="bi bi-lock-fill" style="color:var(--trip-blue);"></i>
+                        Your card details are encrypted and never stored. This is a demo — use test values.
+                    </div>
+                </div>
+
+                <!-- ── GCash / Maya fields ── -->
+                <div id="creds-ewallet" class="cred-section <?= in_array($_POST['pay_method'] ?? '', ['GCash','Maya']) ? 'active' : '' ?>">
+                    <div class="mb-3">
+                        <label class="cred-label" id="ewalletLabel">GCash Mobile Number</label>
+                        <div style="position:relative;">
+                            <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:14px; color:var(--trip-muted); font-weight:600; pointer-events:none;">+63</span>
+                            <input type="tel" id="ewalletNumber" name="ewallet_number" class="cred-input"
+                                   placeholder="9XX XXX XXXX" maxlength="13"
+                                   value="<?= htmlspecialchars($_POST['ewallet_number'] ?? '') ?>"
+                                   style="padding-left:46px;" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="cred-label">Account Name / Display Name</label>
+                        <input type="text" name="ewallet_name" class="cred-input"
+                               placeholder="Name registered to this account"
+                               value="<?= htmlspecialchars($_POST['ewallet_name'] ?? '') ?>">
+                    </div>
+                    <div class="security-note">
+                        <i class="bi bi-shield-check" style="color:#1a9e5c;"></i>
+                        A payment confirmation will be sent to your registered mobile number.
+                    </div>
+                </div>
+
+                <!-- ── Bank Transfer fields ── -->
+                <div id="creds-bank" class="cred-section <?= ($_POST['pay_method'] ?? '') === 'Bank Transfer' ? 'active' : '' ?>">
+                    <div class="mb-3">
+                        <label class="cred-label">Bank</label>
+                        <select name="bank_name" class="cred-input" style="cursor:pointer;">
+                            <?php
+                            $banks = ['BDO Unibank','BPI','Metrobank','UnionBank','Land Bank','RCBC','Eastwest Bank','Security Bank','PNB'];
+                            $selBank = $_POST['bank_name'] ?? '';
+                            foreach ($banks as $b):
+                            ?>
+                            <option value="<?= $b ?>" <?= $selBank === $b ? 'selected' : '' ?>><?= $b ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <div class="input-group">
-                            <span class="input-group-text" style="font-size:13px;">Promo Code</span>
-                            <input type="text" name="promo_code" class="form-control text-uppercase"
-                                   placeholder="Optional" style="font-size:13px;"
-                                   value="<?= htmlspecialchars($_POST['promo_code'] ?? '') ?>">
+                    <div class="mb-3">
+                        <label class="cred-label">Account Number</label>
+                        <input type="text" name="bank_account" class="cred-input mono"
+                               placeholder="e.g. 1234-5678-9012"
+                               value="<?= htmlspecialchars($_POST['bank_account'] ?? '') ?>"
+                               inputmode="numeric">
+                    </div>
+                    <div class="mb-2">
+                        <label class="cred-label">Account Name</label>
+                        <input type="text" name="bank_account_name" class="cred-input"
+                               placeholder="Full name on bank account"
+                               value="<?= htmlspecialchars($_POST['bank_account_name'] ?? '') ?>">
+                    </div>
+                    <div class="security-note">
+                        <i class="bi bi-info-circle" style="color:var(--trip-blue);"></i>
+                        Transfer the exact amount shown in the price summary. Payment verified within 24 hours.
+                    </div>
+                </div>
+
+                <!-- Promo Code (always visible) -->
+                <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--trip-border);">
+                    <label class="cred-label">Promo Code <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--trip-muted);">(optional)</span></label>
+                    <div class="d-flex gap-2">
+                        <input type="text" name="promo_code" class="cred-input text-uppercase"
+                               placeholder="e.g. TRIP10"
+                               value="<?= htmlspecialchars($_POST['promo_code'] ?? '') ?>"
+                               style="max-width:220px; letter-spacing:0.05em;">
+                        <div style="font-size:12px; color:var(--trip-muted); line-height:1.4; display:flex; align-items:center;">
+                            Try: <strong style="color:var(--trip-text); margin-left:4px;">TRIP10 &nbsp;&middot;&nbsp; SUMMER500 &nbsp;&middot;&nbsp; FLYPH20</strong>
                         </div>
-                        <div class="form-text" style="font-size:12px;">Try: TRIP10, SUMMER500, FLYPH20</div>
                     </div>
                 </div>
             </div>
@@ -463,5 +629,93 @@ include '../layout/layout.php';
     </div>
     </form>
 </div>
+
+<script>
+// ── Payment method switching ────────────────────────────────────
+function selectPayMethod(method, btn) {
+    // Update hidden input
+    document.getElementById('payMethodInput').value = method;
+
+    // Update button styles
+    document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Hide all cred sections
+    document.querySelectorAll('.cred-section').forEach(s => s.classList.remove('active'));
+
+    // Show appropriate section
+    if (method === 'Credit Card' || method === 'Debit Card') {
+        document.getElementById('creds-card').classList.add('active');
+    } else if (method === 'GCash' || method === 'Maya') {
+        document.getElementById('creds-ewallet').classList.add('active');
+        document.getElementById('ewalletLabel').textContent = method + ' Mobile Number';
+    } else if (method === 'Bank Transfer') {
+        document.getElementById('creds-bank').classList.add('active');
+    }
+}
+
+// ── Card number formatter (XXXX  XXXX  XXXX  XXXX) ────────────
+(function () {
+    const cardInput = document.getElementById('cardNumber');
+    if (!cardInput) return;
+
+    cardInput.addEventListener('input', function (e) {
+        let raw = this.value.replace(/\D/g, '').slice(0, 16);
+        // Insert double-space every 4 digits for visual clarity
+        this.value = raw.replace(/(.{4})/g, '$1  ').trimEnd();
+    });
+
+    cardInput.addEventListener('keydown', function (e) {
+        // Allow backspace to feel natural even with spaces
+        if (e.key === 'Backspace') {
+            let pos = this.selectionStart;
+            if (pos > 0 && this.value[pos - 1] === ' ') {
+                e.preventDefault();
+                this.value = this.value.slice(0, pos - 2) + this.value.slice(pos);
+                this.selectionStart = this.selectionEnd = pos - 2;
+            }
+        }
+    });
+})();
+
+// ── Expiry date formatter (MM / YY) ────────────────────────────
+(function () {
+    const expiryInput = document.getElementById('cardExpiry');
+    if (!expiryInput) return;
+
+    expiryInput.addEventListener('input', function () {
+        let raw = this.value.replace(/\D/g, '').slice(0, 4);
+        if (raw.length > 2) {
+            this.value = raw.slice(0, 2) + ' / ' + raw.slice(2);
+        } else {
+            this.value = raw;
+        }
+    });
+})();
+
+// ── GCash / Maya phone formatter (9XX XXX XXXX) ───────────────
+(function () {
+    const phoneInput = document.getElementById('ewalletNumber');
+    if (!phoneInput) return;
+
+    phoneInput.addEventListener('input', function () {
+        let raw = this.value.replace(/\D/g, '').slice(0, 10);
+        if (raw.length > 6) {
+            this.value = raw.slice(0, 3) + ' ' + raw.slice(3, 6) + ' ' + raw.slice(6);
+        } else if (raw.length > 3) {
+            this.value = raw.slice(0, 3) + ' ' + raw.slice(3);
+        } else {
+            this.value = raw;
+        }
+    });
+})();
+
+// CVV hold-to-reveal
+(function() {
+    var cvv = document.getElementById('cardCvv');
+    var btn = document.getElementById('cardCvvBtn');
+    if (cvv && btn) initHoldReveal(cvv, btn);
+})();
+</script>
 
 <?php include '../layout/footer.php'; ?>
