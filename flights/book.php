@@ -442,14 +442,81 @@ include '../layout/layout.php';
             <!-- Passenger Details -->
             <?php for ($i = 1; $i <= $passengers; $i++): ?>
             <div class="trip-card p-4 mb-3">
-                <h6 class="fw-bold mb-3">
+                <h6 class="fw-bold mb-4">
                     <i class="bi bi-person-circle me-2" style="color:#0077EE;"></i>
                     Passenger <?= $i ?><?= $passengers > 1 ? " of $passengers" : '' ?>
+                    <span class="text-muted fw-normal" style="font-size:12px; margin-left:6px;">Details must match passport</span>
                 </h6>
-                <div class="mb-0">
-                    <label class="form-label fw-semibold" style="font-size:13px;">Full Name <span class="text-muted fw-normal">(as in passport)</span></label>
-                    <input type="text" name="pax_<?= $i ?>_name" class="form-control"
-                           placeholder="e.g. Juan Dela Cruz" required>
+
+                <div class="row g-3">
+                    <!-- Full Name -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Full Name <span class="text-muted fw-normal">(as in passport)</span></label>
+                        <input type="text" name="pax_<?= $i ?>_name" class="form-control"
+                               placeholder="e.g. Juan Dela Cruz" required
+                               value="<?= htmlspecialchars($_POST["pax_{$i}_name"] ?? '') ?>">
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Gender <span class="text-muted fw-normal">(on passport)</span></label>
+                        <select name="pax_<?= $i ?>_gender" class="form-select" required>
+                            <option value="" disabled <?= empty($_POST["pax_{$i}_gender"]) ? 'selected' : '' ?>>Select gender</option>
+                            <option value="Male"   <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Male'   ? 'selected' : '' ?>>Male</option>
+                            <option value="Female" <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+                            <option value="Unspecified" <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Unspecified' ? 'selected' : '' ?>>Unspecified / X</option>
+                        </select>
+                    </div>
+
+                    <!-- Date of Birth -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Date of Birth</label>
+                        <input type="date" name="pax_<?= $i ?>_dob" class="form-control"
+                               max="<?= date('Y-m-d', strtotime('-2 years')) ?>"
+                               min="<?= date('Y-m-d', strtotime('-120 years')) ?>"
+                               required
+                               value="<?= htmlspecialchars($_POST["pax_{$i}_dob"] ?? '') ?>">
+                    </div>
+
+                    <!-- Nationality -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Nationality</label>
+                        <select name="pax_<?= $i ?>_nationality" class="form-select" required>
+                            <option value="" disabled <?= empty($_POST["pax_{$i}_nationality"]) ? 'selected' : '' ?>>Select nationality</option>
+                            <?php
+                            $nationalities = [
+                                'Afghan','Albanian','Algerian','American','Andorran','Angolan','Argentine','Armenian',
+                                'Australian','Austrian','Azerbaijani','Bahamian','Bahraini','Bangladeshi','Barbadian',
+                                'Belarusian','Belgian','Belizean','Beninese','Bhutanese','Bolivian','Bosnian','Botswanan',
+                                'Brazilian','British','Bruneian','Bulgarian','Burkinabe','Burundian','Cambodian','Cameroonian',
+                                'Canadian','Cape Verdean','Central African','Chadian','Chilean','Chinese','Colombian',
+                                'Comorian','Congolese','Croatian','Cuban','Cypriot','Czech','Danish','Djiboutian',
+                                'Dominican','Dutch','Ecuadorean','Egyptian','Emirian','Equatorial Guinean','Eritrean',
+                                'Estonian','Ethiopian','Fijian','Finnish','French','Gabonese','Gambian','Georgian',
+                                'German','Ghanaian','Greek','Grenadian','Guatemalan','Guinean','Guyanese','Haitian',
+                                'Honduran','Hungarian','I-Kiribati','Indian','Indonesian','Iranian','Iraqi','Irish',
+                                'Israeli','Italian','Ivorian','Jamaican','Japanese','Jordanian','Kazakhstani','Kenyan',
+                                'Korean','Kuwaiti','Kyrgyz','Laotian','Latvian','Lebanese','Liberian','Libyan',
+                                'Liechtensteiner','Lithuanian','Luxembourger','Macedonian','Malagasy','Malawian',
+                                'Malaysian','Maldivian','Malian','Maltese','Marshallese','Mauritanian','Mauritian',
+                                'Mexican','Micronesian','Moldovan','Monacan','Mongolian','Montenegrin','Moroccan',
+                                'Mozambican','Namibian','Nauruan','Nepalese','New Zealander','Nicaraguan','Nigerian',
+                                'Norwegian','Omani','Pakistani','Palauan','Palestinian','Panamanian','Papua New Guinean',
+                                'Paraguayan','Peruvian','Filipino','Polish','Portuguese','Qatari','Romanian','Russian',
+                                'Rwandan','Saint Lucian','Salvadoran','Samoan','Saudi','Senegalese','Serbian',
+                                'Sierra Leonean','Singaporean','Slovak','Slovenian','Somali','South African','South Sudanese',
+                                'Spanish','Sri Lankan','Sudanese','Surinamese','Swazi','Swedish','Swiss','Syrian',
+                                'Taiwanese','Tajik','Tanzanian','Thai','Timorese','Togolese','Tongan','Trinidadian',
+                                'Tunisian','Turkish','Turkmen','Tuvaluan','Ugandan','Ukrainian','Uruguayan','Uzbekistani',
+                                'Vanuatuan','Venezuelan','Vietnamese','Yemeni','Zambian','Zimbabwean',
+                            ];
+                            foreach ($nationalities as $nat):
+                                $sel = ($_POST["pax_{$i}_nationality"] ?? '') === $nat ? 'selected' : '';
+                            ?>
+                            <option value="<?= $nat ?>" <?= $sel ?>><?= $nat ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
             </div>
             <?php endfor; ?>
@@ -538,7 +605,7 @@ include '../layout/layout.php';
                         <div style="position:relative;">
                             <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:14px; color:var(--trip-muted); font-weight:600; pointer-events:none;">+63</span>
                             <input type="tel" id="ewalletNumber" name="ewallet_number" class="cred-input"
-                                   placeholder="9XX XXX XXXX" maxlength="13"
+                                   placeholder="9XX XXX XXXX" maxlength="12"
                                    value="<?= htmlspecialchars($_POST['ewallet_number'] ?? '') ?>"
                                    style="padding-left:46px;" inputmode="numeric">
                         </div>

@@ -3,19 +3,15 @@ session_start();
 require_once '../config/db.php';
 require_once '../config/airports.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /auth/login.php');
-    exit();
-}
 if (($_SESSION['role'] ?? '') === 'admin') {
     header('Location: /admin/dashboard.php');
     exit();
 }
 
-$ref        = $_GET['ref']   ?? '';
+$ref         = $_GET['ref']   ?? '';
 $coinsEarned = (int)($_GET['coins'] ?? 0);
 if (!$ref) {
-    header('Location: /user/dashboard.php');
+    header('Location: /index.php');
     exit();
 }
 
@@ -31,15 +27,15 @@ $stmt = $conn->prepare("
     JOIN flight f          ON f.Flght_ID       = bd.Bokde_FlghtID
     JOIN airliner a        ON a.Airln_ID       = f.Flght_AirlnID
     LEFT JOIN payment py   ON py.Paymt_BookID  = bk.Book_ID
-    WHERE bk.Book_Confirm = ? AND bk.Book_UserID = ?
+    WHERE bk.Book_Confirm = ?
     ORDER BY f.Flght_DepartDate ASC, bd.Bokde_ID ASC
 ");
-$stmt->bind_param('si', $ref, $_SESSION['user_id']);
+$stmt->bind_param('s', $ref);
 $stmt->execute();
 $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 if (empty($rows)) {
-    header('Location: /user/dashboard.php');
+    header('Location: /index.php');
     exit();
 }
 

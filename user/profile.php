@@ -439,9 +439,15 @@ include '../layout/layout.php';
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:13px;">Phone Number</label>
-                    <input type="text" name="phone" class="form-control"
-                           value="<?= htmlspecialchars($user['User_PhoneNo'] ?? '') ?>"
-                           placeholder="+63 9XX XXX XXXX">
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <span style="position:absolute; left:14px; font-size:14px; color:#555; font-weight:600; pointer-events:none; z-index:2; user-select:none;">+63</span>
+                        <input type="tel" id="profilePhoneDisplay" class="form-control"
+                               placeholder="9XX XXX XXXX" maxlength="13" inputmode="numeric"
+                               style="padding-left:50px;"
+                               value="<?= htmlspecialchars(preg_replace('/^\+63\s*/', '', $user['User_PhoneNo'] ?? '')) ?>">
+                        <input type="hidden" name="phone" id="profilePhoneHidden"
+                               value="<?= htmlspecialchars($user['User_PhoneNo'] ?? '') ?>">
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:13px;">Nationality</label>
@@ -535,4 +541,25 @@ include '../layout/layout.php';
 
 </div>
 
+<script>
+(function () {
+    var display = document.getElementById('profilePhoneDisplay');
+    var hidden  = document.getElementById('profilePhoneHidden');
+    if (!display) return;
+
+    function fmt(val) {
+        var d = val.replace(/\D/g, '').slice(0, 10);
+        if (d.length > 6) return d.slice(0,3) + ' ' + d.slice(3,6) + ' ' + d.slice(6);
+        if (d.length > 3) return d.slice(0,3) + ' ' + d.slice(3);
+        return d;
+    }
+    display.addEventListener('input', function () {
+        this.value = fmt(this.value);
+        hidden.value = this.value ? '+63 ' + this.value : '';
+    });
+    display.closest('form').addEventListener('submit', function () {
+        hidden.value = display.value ? '+63 ' + display.value : '';
+    });
+})();
+</script>
 <?php include '../layout/footer.php'; ?>

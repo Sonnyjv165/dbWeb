@@ -21,13 +21,16 @@ if (isset($_GET['cancel'])) {
     ");
     $get->bind_param('i', $bId);
     $get->execute();
-    $bRow = $get->get_result()->fetch_assoc();
+    $legRows = $get->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    if ($bRow) {
+    if (!empty($legRows)) {
         $conn->begin_transaction();
         try {
             $conn->query("UPDATE booking SET Book_Status='CANCELLED', Book_Pay='REFUNDED' WHERE Book_ID=$bId");
-            $conn->query("UPDATE flight SET Flght_SeatAvail = Flght_SeatAvail + {$bRow['pax_count']} WHERE Flght_ID = {$bRow['Bokde_FlghtID']}");
+            // Restore seats for every leg (handles both one-way and round-trip)
+            foreach ($legRows as $leg) {
+                $conn->query("UPDATE flight SET Flght_SeatAvail = Flght_SeatAvail + {$leg['pax_count']} WHERE Flght_ID = {$leg['Bokde_FlghtID']}");
+            }
             $conn->query("UPDATE payment SET Paymt_Status='REFUNDED' WHERE Paymt_BookID=$bId");
             $conn->commit();
             $_SESSION['flash'] = ['type'=>'warning','msg'=>'Booking cancelled.'];
