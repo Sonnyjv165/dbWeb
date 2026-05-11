@@ -3,14 +3,11 @@ session_start();
 require_once '../config/db.php';
 require_once '../config/airports.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /auth/login.php');
-    exit();
-}
 if (($_SESSION['role'] ?? '') === 'admin') {
     header('Location: /admin/dashboard.php');
     exit();
 }
+$isGuest = !isset($_SESSION['user_id']);
 
 $flightId  = (int)($_GET['flight_id']  ?? 0);
 $returnId  = (int)($_GET['return_id']  ?? 0);
@@ -104,6 +101,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
         }
     }
 
+    // Resolve booking user ID — guest or logged-in
+    $bookUserId = $_SESSION['user_id'] ?? null;
+    if ($isGuest && !$error) {
+        $guestEmail = strtolower(trim($_POST['guest_email'] ?? ''));
+        if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter a valid email address so we can send your booking details.';
+        } else {
+            $ex = $conn->prepare("SELECT User_ID FROM user WHERE User_Email = ? LIMIT 1");
+            $ex->bind_param('s', $guestEmail);
+            $ex->execute();
+            $exRow = $ex->get_result()->fetch_assoc();
+            if ($exRow) {
+                $bookUserId = $exRow['User_ID'];
+            } else {
+                $guestName = trim($_POST['pax_1_name'] ?? 'Guest');
+                $gi = $conn->prepare("INSERT INTO user (User_Name, User_Email, User_Password, User_PhoneNo, User_Loyalty, User_Status, User_Role) VALUES (?, ?, '', '', 0, 'ACTIVE', 'user')");
+                $gi->bind_param('ss', $guestName, $guestEmail);
+                $gi->execute();
+                $bookUserId = $conn->insert_id;
+            }
+        }
+    }
+
     if (!$error) {
         $conn->begin_transaction();
         try {
@@ -134,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
                 INSERT INTO booking (Book_UserID, Book_Date, Book_Status, Book_Total, Book_Pay, Book_Confirm, Book_PromoID)
                 VALUES (?, NOW(), 'CONFIRMED', ?, 'PAID', ?, ?)
             ");
-            $b->bind_param('idsi', $_SESSION['user_id'], $finalTotal, $bookConfirm, $promoId);
+            $b->bind_param('idsi', $bookUserId, $finalTotal, $bookConfirm, $promoId);
             $b->execute();
             $bookId = $conn->insert_id;
 
@@ -177,11 +197,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_booking'])) {
                 $conn->query("UPDATE promotion SET Promo_Usage = Promo_Usage + 1 WHERE Promo_ID = $promoId");
             }
 
-            // Award Trip Coins: 1 per ₱100 spent — not awarded when a promo discount was applied
-            if (!$promoId) {
+            // Award Trip Coins: only for logged-in members (not guests), not when promo used
+            $coinsEarned = 0;
+            if (!$isGuest && !$promoId) {
                 $coinsEarned = (int)floor($finalTotal / 100);
                 if ($coinsEarned > 0) {
-                    $conn->query("UPDATE user SET User_Loyalty = User_Loyalty + $coinsEarned WHERE User_ID = {$_SESSION['user_id']}");
+                    $conn->query("UPDATE user SET User_Loyalty = User_Loyalty + $coinsEarned WHERE User_ID = $bookUserId");
                 }
             }
 
@@ -394,6 +415,26 @@ include '../layout/layout.php';
                         <div style="font-size:11px; color:#aaa;"><?= date('D, d M Y', strtotime($returnFlight['Flght_DepartDate'])) ?></div>
                         <span class="badge badge-trip-orange px-2 py-1"><?= classLabel($class) ?></span>
                     </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <!-- Guest contact email -->
+            <?php if ($isGuest): ?>
+            <div class="trip-card p-4 mb-3">
+                <h6 class="fw-bold mb-1">
+                    <i class="bi bi-envelope me-2" style="color:#0077EE;"></i>Contact Email
+                </h6>
+                <p class="text-muted mb-3" style="font-size:13px;">We'll send your booking confirmation here. Use this email to retrieve your booking later.</p>
+                <div class="mb-0">
+                    <label class="form-label fw-semibold" style="font-size:13px;">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" name="guest_email" class="form-control"
+                           placeholder="you@email.com" required
+                           value="<?= htmlspecialchars($_POST['guest_email'] ?? '') ?>">
+                </div>
+                <div style="margin-top:14px; background:#f0f8ff; border-radius:8px; padding:10px 14px; font-size:12px; color:#0077EE; display:flex; align-items:center; gap:8px;">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Sign in or create a free account to earn <strong>Trip Coins</strong> and access membership benefits on every booking.</span>
                 </div>
             </div>
             <?php endif; ?>

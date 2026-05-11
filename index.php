@@ -318,8 +318,7 @@ include 'layout/layout.php';
 <div class="search-wrapper">
     <div class="container">
 
-        <?php if (isset($_SESSION['user_id'])): ?>
-        <!-- Search form for authenticated users -->
+        <!-- Search form — open to all visitors -->
         <div class="search-card" style="max-width:900px; margin:0 auto;">
 
             <div class="d-flex align-items-center gap-3 mb-4">
@@ -406,24 +405,6 @@ include 'layout/layout.php';
             </form>
         </div>
 
-        <?php else: ?>
-        <!-- Auth gate for guests -->
-        <div class="search-gate" style="max-width:560px; margin:0 auto;">
-            <div style="width:48px; height:48px; border-radius:12px; background:#f0f4fc; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:20px; color:var(--trip-blue);">
-                <i class="bi bi-airplane"></i>
-            </div>
-            <h5 style="font-family:var(--font-serif); font-size:22px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">
-                Sign in to search flights
-            </h5>
-            <p style="color:var(--trip-muted); font-size:14px; line-height:1.6; max-width:360px; margin:0 auto 28px;">
-                Create a free account to access flight search, compare routes, and manage your bookings.
-            </p>
-            <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="/auth/register.php" class="btn-trip" style="padding:11px 28px;">Create Free Account</a>
-                <a href="/auth/login.php" class="btn-trip-outline" style="padding:10px 24px;">Sign In</a>
-            </div>
-        </div>
-        <?php endif; ?>
 
     </div>
 </div>

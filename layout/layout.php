@@ -322,7 +322,10 @@ if (session_status() === PHP_SESSION_NONE) {
                 <?php endif; ?>
 
             <?php else: ?>
-                <a href="/auth/login.php"    class="btn btn-trip-outline">Sign In</a>
+                <a href="/flights/find-booking.php" class="nav-link">
+                    <i class="bi bi-search me-1"></i>Find My Bookings
+                </a>
+                <a href="/auth/login.php"    class="btn btn-trip-outline ms-1">Sign In</a>
                 <a href="/auth/register.php" class="btn btn-trip ms-1">Register</a>
             <?php endif; ?>
 
