@@ -14,7 +14,7 @@ $searched = false;
 $searchEmail = '';
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_email'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['do_search'])) {
     $searchEmail = strtolower(trim($_POST['search_email']));
     $searched = true;
 
@@ -71,7 +71,7 @@ include '../layout/layout.php';
                        placeholder="you@email.com" required
                        value="<?= htmlspecialchars($searchEmail) ?>">
             </div>
-            <button type="submit" name="search_email" class="btn btn-trip" style="padding:10px 28px; white-space:nowrap;">
+            <button type="submit" name="do_search" class="btn btn-trip" style="padding:10px 28px; white-space:nowrap;">
                 <i class="bi bi-search me-2"></i>Search
             </button>
         </form>
