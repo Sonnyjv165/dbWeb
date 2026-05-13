@@ -45,48 +45,122 @@ if (isset($_POST['register'])) {
     }
 }
 
-$title = 'Register';
+$title = 'Create Account';
 include '../layout/layout.php';
 ?>
 
-<div class="container py-5" style="max-width:500px;">
-    <div class="trip-card p-4 mt-3">
+<style>
+.auth-wrap {
+    min-height: calc(100dvh - 88px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+}
+.auth-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05);
+    padding: 44px 40px;
+    width: 100%;
+    max-width: 500px;
+}
+@media (max-width: 540px) {
+    .auth-card { padding: 32px 20px; border-radius: 16px; }
+}
+.auth-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: #EFF6FF;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 24px;
+    color: var(--trip-blue);
+}
+.auth-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--trip-text);
+    text-align: center;
+    margin-bottom: 6px;
+}
+.auth-sub {
+    font-size: 14px;
+    color: var(--trip-muted);
+    text-align: center;
+    margin-bottom: 32px;
+}
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--trip-text);
+    margin-bottom: 6px;
+}
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: var(--trip-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+}
+.phone-prefix {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px; color: var(--trip-text);
+    font-weight: 600; pointer-events: none;
+    z-index: 2; user-select: none;
+}
+</style>
 
-        <div class="text-center mb-4">
-            <div style="width:52px; height:52px; border-radius:14px; background:#e8f2fd; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:22px; color:var(--trip-blue);">
-                <i class="bi bi-person-plus"></i>
-            </div>
-            <h4 style="font-family:var(--font-serif); font-weight:600; font-size:24px; letter-spacing:-0.02em; margin-bottom:4px;">Create your account</h4>
-            <p class="text-muted" style="font-size:14px; margin:0;">Join trip.com and start booking flights</p>
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <div class="auth-icon">
+            <i class="bi bi-person-plus-fill"></i>
         </div>
+        <h4 class="auth-title">Create your account</h4>
+        <p class="auth-sub">Join trip.com and start booking flights</p>
 
         <?php if ($error): ?>
-            <div class="alert alert-danger rounded-3 py-2" style="font-size:14px;">
+            <div class="alert alert-danger py-2 mb-3">
                 <i class="bi bi-exclamation-circle me-2"></i><?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
         <?php if ($success): ?>
-            <div class="alert alert-success rounded-3 py-2" style="font-size:14px;">
+            <div class="alert alert-success py-2 mb-3">
                 <i class="bi bi-check-circle me-2"></i><?= $success ?>
-                <a href="/auth/login.php" class="fw-bold">Sign in →</a>
+                <a href="/auth/login.php" style="color:var(--trip-success); font-weight:700;">Sign in now &rarr;</a>
             </div>
         <?php endif; ?>
 
         <form method="POST">
             <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:14px;">Full Name</label>
-                <input type="text" name="name" class="form-control" placeholder="Juan Dela Cruz" required
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" placeholder="Your full name" required
                        value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:14px;">Email</label>
+                <label class="form-label">Email address</label>
                 <input type="email" name="email" class="form-control" placeholder="you@email.com" required
                        value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:14px;">Phone (optional)</label>
-                <div style="position:relative; display:flex; align-items:center;">
-                    <span style="position:absolute; left:14px; font-size:14px; color:#555; font-weight:600; pointer-events:none; z-index:2; user-select:none;">+63</span>
+                <label class="form-label" style="display:flex; align-items:center; gap:6px;">
+                    Phone Number <span style="font-size:11px; font-weight:400; color:var(--trip-muted);">(optional)</span>
+                </label>
+                <div style="position:relative;">
+                    <span class="phone-prefix">+63</span>
                     <input type="tel" id="regPhoneDisplay" class="form-control"
                            placeholder="9XX XXX XXXX" maxlength="13" inputmode="numeric"
                            style="padding-left:50px;"
@@ -96,17 +170,17 @@ include '../layout/layout.php';
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:14px;">Password</label>
+                <label class="form-label">Password</label>
                 <div class="pwd-wrap">
                     <input type="password" name="password" id="regPwd" class="form-control"
-                           placeholder="Min. 6 characters" required>
+                           placeholder="At least 6 characters" required>
                     <button type="button" class="pwd-reveal-btn" id="regPwdBtn" title="Hold to reveal">
                         <i class="bi bi-eye"></i>
                     </button>
                 </div>
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:14px;">Confirm Password</label>
+                <label class="form-label">Confirm Password</label>
                 <div class="pwd-wrap">
                     <input type="password" name="confirm" id="regConfirm" class="form-control"
                            placeholder="Re-enter password" required>
@@ -115,16 +189,18 @@ include '../layout/layout.php';
                     </button>
                 </div>
             </div>
-            <button type="submit" name="register" class="btn btn-trip w-100" style="padding:11px;">
+            <button type="submit" name="register" class="btn-trip w-100" style="padding:12px; font-size:15px; text-align:center; border-radius:var(--radius-md);">
                 Create Account
             </button>
         </form>
 
-        <hr class="my-3">
-        <p class="text-center mb-0" style="font-size:14px;">
+        <div class="auth-divider">or</div>
+
+        <p class="text-center mb-0" style="font-size:14px; color:var(--trip-muted);">
             Already have an account?
-            <a href="/auth/login.php" style="color:#0086FF; font-weight:600;">Sign In</a>
+            <a href="/auth/login.php" style="color:var(--trip-blue); font-weight:600; text-decoration:none;">Sign in</a>
         </p>
+
     </div>
 </div>
 

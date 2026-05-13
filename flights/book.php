@@ -229,112 +229,227 @@ include '../layout/layout.php';
 ?>
 
 <style>
-.dark-summary {
-    background: #111111;
-    border-radius: 14px;
-    padding: 24px;
-    position: sticky;
-    top: 80px;
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.06);
-}
-.dark-summary h6   { color: #fff; font-family: var(--font-serif); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 20px; }
-.dark-summary .text-muted { color: rgba(255,255,255,0.50) !important; }
-.dark-summary hr   { border-color: rgba(255,255,255,0.10); }
-.dark-summary .price-text { color: var(--trip-orange); }
-.dark-summary .summary-row { display:flex; justify-content:space-between; align-items:baseline; font-size:13px; margin-bottom:8px; }
-.dark-summary .summary-row.total { font-size:15px; font-weight:700; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; margin-top:4px; }
-.dark-summary .summary-row span:first-child { color: rgba(255,255,255,0.55); }
-.dark-summary .summary-row span:last-child  { color: #fff; font-weight:600; }
-.dark-summary .summary-row.total span       { color: #fff; }
-.dark-summary .info-bar {
-    background: rgba(255,255,255,0.07);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: rgba(255,255,255,0.72);
-    margin-bottom: 16px;
-}
-.book-crumb a { color: var(--trip-blue); font-size: 13px; text-decoration: none; }
-.book-crumb a:hover { text-decoration: underline; }
-.book-crumb span { color: var(--trip-muted); font-size: 13px; }
+/* ── Page chrome ── */
+.book-crumb { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.book-crumb a { color:var(--trip-blue); font-size:13px; text-decoration:none; font-weight:500; }
+.book-crumb a:hover { text-decoration:underline; }
+.book-crumb .sep { color:var(--trip-border); font-size:13px; }
+.book-crumb .curr { color:var(--trip-muted); font-size:13px; }
 
-/* ── Payment method buttons ── */
-.pay-methods { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+/* ── Section card header ── */
+.section-label {
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.7px;
+    color:var(--trip-muted); margin-bottom:14px; display:flex; align-items:center; gap:7px;
+}
+.section-label i { font-size:14px; }
+
+/* ── Flight summary card ── */
+.flight-summary {
+    background:#fff; border-radius:var(--radius-lg); border:1px solid var(--trip-border);
+    box-shadow:var(--shadow-sm); padding:20px 24px; margin-bottom:12px;
+    border-left:4px solid var(--trip-blue);
+    transition:box-shadow .15s;
+}
+.flight-summary.ret { border-left-color:var(--trip-orange); }
+.flight-summary:hover { box-shadow:var(--shadow-md); }
+
+.fs-airline-code { font-size:18px; font-weight:800; color:var(--trip-blue); letter-spacing:-.5px; }
+.flight-summary.ret .fs-airline-code { color:var(--trip-orange); }
+.fs-airline-sub  { font-size:11px; color:var(--trip-muted); margin-top:1px; }
+.fs-time { font-size:22px; font-weight:800; color:var(--trip-text); letter-spacing:-.5px; line-height:1; }
+.fs-iata { font-size:12px; font-weight:700; color:var(--trip-muted); margin-top:2px; }
+.fs-city { font-size:11px; color:var(--trip-muted); }
+.fs-line { height:2px; background:var(--trip-blue); position:relative; flex:1; margin:0 8px; }
+.flight-summary.ret .fs-line { background:var(--trip-orange); }
+.fs-line::after {
+    content:''; position:absolute; right:-6px; top:50%; transform:translateY(-50%);
+    width:10px; height:10px; background:currentColor; border-radius:50%;
+    color:inherit;
+}
+.fs-line-plane {
+    position:absolute; right:-4px; top:-9px; font-size:13px; color:var(--trip-blue);
+}
+.flight-summary.ret .fs-line-plane { color:var(--trip-orange); }
+.fs-dur { font-size:11px; color:var(--trip-muted); text-align:center; margin-bottom:4px; }
+.fs-badge {
+    display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:700;
+    background:#EFF6FF; color:var(--trip-blue); margin-top:3px;
+}
+.flight-summary.ret .fs-badge { background:#FFF3E5; color:var(--trip-orange); }
+
+/* ── Policy strip ── */
+.policy-strip {
+    background:#fff; border-radius:var(--radius-lg); border:1px solid var(--trip-border);
+    border-left:4px solid var(--trip-orange); padding:16px 20px; margin-bottom:20px;
+    box-shadow:var(--shadow-sm);
+}
+.policy-item { display:flex; gap:10px; align-items:flex-start; }
+.policy-icon { font-size:15px; flex-shrink:0; margin-top:1px; }
+.policy-title { font-size:13px; font-weight:700; color:var(--trip-text); }
+.policy-desc  { font-size:12px; color:var(--trip-muted); line-height:1.5; margin-top:1px; }
+
+/* ── Guest email notice ── */
+.guest-info {
+    background:#EFF6FF; border-radius:8px; padding:10px 14px; font-size:12px; color:var(--trip-blue);
+    display:flex; align-items:center; gap:8px; margin-top:12px;
+    border:1px solid rgba(0,119,238,.12);
+}
+
+/* ── Passenger card ── */
+.pax-card {
+    background:#fff; border-radius:var(--radius-lg); border:1px solid var(--trip-border);
+    box-shadow:var(--shadow-sm); padding:22px 24px; margin-bottom:12px;
+}
+.pax-header {
+    display:flex; align-items:center; gap:10px; margin-bottom:18px;
+    padding-bottom:14px; border-bottom:1px solid var(--trip-border);
+}
+.pax-num {
+    width:28px; height:28px; border-radius:50%; background:var(--trip-blue);
+    color:#fff; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.pax-title { font-size:15px; font-weight:700; color:var(--trip-text); }
+.pax-sub   { font-size:12px; color:var(--trip-muted); }
+
+/* ── Payment ── */
+.payment-card {
+    background:#fff; border-radius:var(--radius-lg); border:1px solid var(--trip-border);
+    box-shadow:var(--shadow-sm); padding:22px 24px; margin-bottom:12px;
+}
+.payment-card-title {
+    font-family:var(--font-serif); font-size:17px; font-weight:600;
+    letter-spacing:-.02em; color:var(--trip-text); margin-bottom:18px;
+}
+.pay-methods { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
 .pay-btn {
-    display: flex; align-items: center; gap: 9px;
-    padding: 10px 18px; border-radius: 10px; cursor: pointer;
-    border: 1.5px solid var(--trip-border);
-    background: #fff; color: var(--trip-text);
-    font-size: 13px; font-weight: 600; font-family: var(--font-sans);
-    transition: all 0.18s cubic-bezier(0.32,0.72,0,1);
+    display:flex; align-items:center; gap:7px;
+    padding:9px 16px; border-radius:var(--radius-md); cursor:pointer;
+    border:1.5px solid var(--trip-border);
+    background:#fff; color:var(--trip-text);
+    font-size:13px; font-weight:600; font-family:var(--font-sans);
+    transition:all .18s cubic-bezier(.32,.72,0,1);
 }
-.pay-btn:hover { border-color: rgba(0,0,0,0.22); background: var(--trip-bg); }
+.pay-btn:hover { border-color:rgba(0,0,0,.22); background:var(--trip-bg); }
 .pay-btn.active {
-    border-color: var(--trip-text);
-    background: var(--trip-text);
-    color: #fff;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    border-color:var(--trip-blue); background:var(--trip-blue);
+    color:#fff; box-shadow:0 2px 12px rgba(0,119,238,.25);
 }
-.pay-btn .pay-icon { font-size: 16px; line-height: 1; }
+.pay-btn .pay-icon { font-size:15px; line-height:1; }
 
 /* ── Credential fields ── */
-.cred-section { display: none; }
-.cred-section.active { display: block; }
+.cred-section { display:none; }
+.cred-section.active { display:block; }
 .cred-label {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--trip-muted); margin-bottom: 5px; display: block;
+    font-size:11px; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--trip-muted); margin-bottom:5px; display:block;
 }
 .cred-input {
-    font-family: var(--font-sans); font-size: 14px;
-    border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px;
-    padding: 10px 14px; width: 100%; background: #fff; color: var(--trip-text);
-    transition: border-color 0.15s;
-    outline: none;
+    font-family:var(--font-sans); font-size:14px;
+    border:1.5px solid rgba(0,0,0,.12); border-radius:var(--radius-md);
+    padding:10px 14px; width:100%; background:#fff; color:var(--trip-text);
+    transition:border-color .15s; outline:none;
 }
-.cred-input:focus { border-color: var(--trip-blue); box-shadow: 0 0 0 3px rgba(0,119,238,0.10); }
-.cred-input.mono { font-family: 'SF Mono', 'Menlo', monospace; letter-spacing: 0.05em; }
-.card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cred-input:focus { border-color:var(--trip-blue); box-shadow:0 0 0 3px rgba(0,119,238,.10); }
+.cred-input.mono { font-family:'SF Mono','Menlo',monospace; letter-spacing:.05em; }
+.card-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .security-note {
-    display: flex; align-items: center; gap: 8px; margin-top: 16px;
-    background: var(--trip-bg); border-radius: 8px; padding: 10px 14px;
-    font-size: 12px; color: var(--trip-muted); border: 1px solid var(--trip-border);
+    display:flex; align-items:center; gap:8px; margin-top:14px;
+    background:var(--trip-bg); border-radius:var(--radius-md); padding:10px 14px;
+    font-size:12px; color:var(--trip-muted); border:1px solid var(--trip-border);
 }
+.promo-divider {
+    margin-top:18px; padding-top:18px; border-top:1px solid var(--trip-border);
+}
+
+/* ── Dark price summary ── */
+.dark-summary {
+    background:var(--trip-navy);
+    border-radius:var(--radius-lg);
+    padding:24px;
+    position:sticky;
+    top:82px;
+    color:#fff;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:var(--shadow-lg);
+}
+.dark-summary-title {
+    font-family:var(--font-serif); font-size:17px; font-weight:600;
+    letter-spacing:-.02em; color:#fff; margin-bottom:18px;
+    padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,.08);
+    display:flex; align-items:center; gap:8px;
+}
+.sum-row {
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:13px; margin-bottom:8px;
+}
+.sum-row .lbl { color:rgba(255,255,255,.50); }
+.sum-row .val { color:#fff; font-weight:600; }
+.sum-route { font-size:11px; color:rgba(255,255,255,.35); margin-bottom:2px; }
+.sum-divider { border-color:rgba(255,255,255,.10); margin:12px 0; }
+.sum-total {
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:12px 0; border-top:1px solid rgba(255,255,255,.10); margin-top:4px;
+}
+.sum-total .lbl { font-size:13px; font-weight:700; color:#fff; }
+.sum-total .val { font-size:22px; font-weight:800; color:var(--trip-orange); letter-spacing:-.03em; }
+.sum-note { font-size:11px; color:rgba(255,255,255,.35); margin-top:8px; margin-bottom:16px; }
+.sum-info-bar {
+    background:rgba(255,255,255,.07); border-radius:8px;
+    padding:10px 14px; font-size:12px; color:rgba(255,255,255,.65);
+    margin-bottom:16px; display:flex; align-items:center; gap:8px;
+}
+.sum-terms { color:rgba(255,255,255,.30); text-align:center; margin-top:12px; font-size:11px; }
 </style>
 
-<div class="container py-4">
+<div class="container py-4" style="max-width:1100px;">
 
+    <!-- Breadcrumb -->
     <nav class="book-crumb mb-3">
-        <a href="/index.php">Home</a> ›
-        <a href="javascript:history.back()">Search Results</a> ›
-        <span>Booking</span>
+        <a href="/index.php"><i class="bi bi-house-fill me-1"></i>Home</a>
+        <span class="sep">/</span>
+        <a href="javascript:history.back()">Search Results</a>
+        <span class="sep">/</span>
+        <span class="curr">Booking</span>
     </nav>
 
     <?php if ($error): ?>
-        <div class="alert alert-danger rounded-3 mb-3"><?= htmlspecialchars($error) ?></div>
+        <div class="alert alert-danger rounded-3 mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <?= htmlspecialchars($error) ?>
+        </div>
     <?php endif; ?>
 
     <?php if ($isRoundTrip): ?>
-    <div class="alert alert-info rounded-3 mb-3 d-flex align-items-center gap-2" style="font-size:13px; background:#eff8ff; border-color:#b3d9ff; color:#004a8f;">
-        <i class="bi bi-arrow-left-right" style="font-size:18px;"></i>
-        <strong>Round Trip Booking</strong> — You're booking both outbound and return flights together.
+    <div class="mb-3 d-flex align-items-center gap-2" style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:var(--radius-md); padding:12px 16px; font-size:13px; color:#1E40AF;">
+        <i class="bi bi-arrow-left-right" style="font-size:16px;"></i>
+        <span><strong>Round Trip Booking</strong> — You're booking both outbound and return flights together.</span>
     </div>
     <?php endif; ?>
 
-    <!-- Policy notices -->
-    <div class="trip-card p-3 mb-4" style="border-left:4px solid #FF7020;">
-        <div class="row g-2" style="font-size:13px; color:#555;">
-            <div class="col-md-4 d-flex gap-2 align-items-start">
-                <i class="bi bi-person-badge" style="color:#FF7020; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
-                <div><strong style="color:#1A1A1A;">Name must match ID</strong><br>Enter full name exactly as it appears on your passport or government-issued ID.</div>
+    <!-- Policy strip -->
+    <div class="policy-strip mb-4">
+        <div class="row g-3">
+            <div class="col-md-4 policy-item">
+                <i class="bi bi-person-badge policy-icon" style="color:var(--trip-orange);"></i>
+                <div>
+                    <div class="policy-title">Name must match ID</div>
+                    <div class="policy-desc">Enter full name exactly as it appears on your passport or government-issued ID.</div>
+                </div>
             </div>
-            <div class="col-md-4 d-flex gap-2 align-items-start">
-                <i class="bi bi-shield-check" style="color:#1a9e5c; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
-                <div><strong style="color:#1A1A1A;">Price guaranteed</strong><br>Your fare is locked the moment payment is confirmed — it will never increase after that.</div>
+            <div class="col-md-4 policy-item">
+                <i class="bi bi-shield-check policy-icon" style="color:#15803D;"></i>
+                <div>
+                    <div class="policy-title">Price guaranteed</div>
+                    <div class="policy-desc">Your fare is locked the moment payment is confirmed — it will never increase.</div>
+                </div>
             </div>
-            <div class="col-md-4 d-flex gap-2 align-items-start">
-                <i class="bi bi-clock-history" style="color:#0077EE; font-size:16px; flex-shrink:0; margin-top:1px;"></i>
-                <div><strong style="color:#1A1A1A;">Booking cutoff</strong><br>Flights departing within 2 hours cannot be booked online. Contact the airline directly.</div>
+            <div class="col-md-4 policy-item">
+                <i class="bi bi-clock-history policy-icon" style="color:var(--trip-blue);"></i>
+                <div>
+                    <div class="policy-title">Booking cutoff</div>
+                    <div class="policy-desc">Flights within 2 hours cannot be booked online. Contact the airline directly.</div>
+                </div>
             </div>
         </div>
     </div>
@@ -342,78 +457,74 @@ include '../layout/layout.php';
     <form method="POST">
     <div class="row g-4">
 
-        <!-- LEFT — Flight summaries + Passenger + Payment -->
+        <!-- LEFT -->
         <div class="col-lg-8">
 
-            <!-- Outbound Flight Summary -->
-            <div class="trip-card p-4 mb-3">
-                <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:12px; letter-spacing:.6px;">
-                    <i class="bi bi-airplane me-1"></i><?= $isRoundTrip ? 'Outbound Flight' : 'Selected Flight' ?>
-                </h6>
-                <div class="d-flex align-items-center gap-4 flex-wrap">
-                    <div>
-                        <div style="font-size:20px; font-weight:800; color:#0077EE;"><?= htmlspecialchars($flight['Airln_Code']) ?></div>
-                        <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($flight['Airln_Name']) ?> · <?= htmlspecialchars($flight['Flght_No']) ?></div>
+            <!-- Outbound Flight -->
+            <div class="section-label"><i class="bi bi-airplane" style="color:var(--trip-blue);"></i><?= $isRoundTrip ? 'Outbound Flight' : 'Selected Flight' ?></div>
+            <div class="flight-summary mb-4">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div style="min-width:72px;">
+                        <div class="fs-airline-code"><?= htmlspecialchars($flight['Airln_Code']) ?></div>
+                        <div class="fs-airline-sub"><?= htmlspecialchars($flight['Airln_Name']) ?><br><?= htmlspecialchars($flight['Flght_No']) ?></div>
                     </div>
-                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="d-flex align-items-center flex-grow-1 gap-2">
                         <div class="text-center">
-                            <div class="fw-bold" style="font-size:22px;"><?= date('H:i', strtotime($flight['Flght_DepartDate'])) ?></div>
-                            <div style="font-size:12px; color:#aaa;"><?= $flight['Flght_Depart'] ?></div>
-                            <div style="font-size:11px; color:#aaa;"><?= htmlspecialchars($fromCity) ?></div>
+                            <div class="fs-time"><?= date('H:i', strtotime($flight['Flght_DepartDate'])) ?></div>
+                            <div class="fs-iata"><?= $flight['Flght_Depart'] ?></div>
+                            <div class="fs-city"><?= htmlspecialchars($fromCity) ?></div>
                         </div>
-                        <div class="flex-grow-1 text-center">
-                            <div style="font-size:12px; color:#aaa; margin-bottom:4px;"><?= flightDuration($flight['Flght_DepartDate'], $flight['Flght_ArriveDate']) ?></div>
-                            <div style="height:2px; background:#0077EE; position:relative;">
-                                <span style="position:absolute;right:-4px;top:-9px;font-size:14px;color:#0077EE;"><i class="bi bi-airplane-fill"></i></span>
+                        <div style="flex:1; min-width:60px; text-align:center;">
+                            <div class="fs-dur"><?= flightDuration($flight['Flght_DepartDate'], $flight['Flght_ArriveDate']) ?></div>
+                            <div style="height:2px; background:var(--trip-blue); border-radius:2px; position:relative; margin:0 8px;">
+                                <i class="bi bi-airplane-fill fs-line-plane"></i>
                             </div>
-                            <div class="mt-1"><span class="badge badge-trip-blue" style="font-size:10px;">Non-stop</span></div>
+                            <div class="fs-badge mt-2">Non-stop</div>
                         </div>
                         <div class="text-center">
-                            <div class="fw-bold" style="font-size:22px;"><?= date('H:i', strtotime($flight['Flght_ArriveDate'])) ?></div>
-                            <div style="font-size:12px; color:#aaa;"><?= $flight['Flght_Arrival'] ?></div>
-                            <div style="font-size:11px; color:#aaa;"><?= htmlspecialchars($toCity) ?></div>
+                            <div class="fs-time"><?= date('H:i', strtotime($flight['Flght_ArriveDate'])) ?></div>
+                            <div class="fs-iata"><?= $flight['Flght_Arrival'] ?></div>
+                            <div class="fs-city"><?= htmlspecialchars($toCity) ?></div>
                         </div>
                     </div>
-                    <div class="text-end">
-                        <div style="font-size:11px; color:#aaa;"><?= date('D, d M Y', strtotime($flight['Flght_DepartDate'])) ?></div>
-                        <span class="badge badge-trip-blue px-2 py-1"><?= classLabel($class) ?></span>
+                    <div class="text-end" style="min-width:100px;">
+                        <div style="font-size:11px; color:var(--trip-muted);"><?= date('D, d M Y', strtotime($flight['Flght_DepartDate'])) ?></div>
+                        <span class="badge badge-trip-blue mt-1"><?= classLabel($class) ?></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Return Flight Summary (round trip only) -->
+            <!-- Return Flight -->
             <?php if ($isRoundTrip): ?>
-            <div class="trip-card p-4 mb-3" style="border-left:4px solid #FF7020;">
-                <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:12px; letter-spacing:.6px;">
-                    <i class="bi bi-arrow-return-left me-1"></i>Return Flight
-                </h6>
-                <div class="d-flex align-items-center gap-4 flex-wrap">
-                    <div>
-                        <div style="font-size:20px; font-weight:800; color:#0077EE;"><?= htmlspecialchars($returnFlight['Airln_Code']) ?></div>
-                        <div style="font-size:12px; color:#6B6B6B;"><?= htmlspecialchars($returnFlight['Airln_Name']) ?> · <?= htmlspecialchars($returnFlight['Flght_No']) ?></div>
+            <div class="section-label"><i class="bi bi-arrow-return-left" style="color:var(--trip-orange);"></i>Return Flight</div>
+            <div class="flight-summary ret mb-4">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div style="min-width:72px;">
+                        <div class="fs-airline-code"><?= htmlspecialchars($returnFlight['Airln_Code']) ?></div>
+                        <div class="fs-airline-sub"><?= htmlspecialchars($returnFlight['Airln_Name']) ?><br><?= htmlspecialchars($returnFlight['Flght_No']) ?></div>
                     </div>
-                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="d-flex align-items-center flex-grow-1 gap-2">
                         <div class="text-center">
-                            <div class="fw-bold" style="font-size:22px;"><?= date('H:i', strtotime($returnFlight['Flght_DepartDate'])) ?></div>
-                            <div style="font-size:12px; color:#aaa;"><?= $returnFlight['Flght_Depart'] ?></div>
-                            <div style="font-size:11px; color:#aaa;"><?= htmlspecialchars(airportCity($returnFlight['Flght_Depart'])) ?></div>
+                            <div class="fs-time"><?= date('H:i', strtotime($returnFlight['Flght_DepartDate'])) ?></div>
+                            <div class="fs-iata"><?= $returnFlight['Flght_Depart'] ?></div>
+                            <div class="fs-city"><?= htmlspecialchars(airportCity($returnFlight['Flght_Depart'])) ?></div>
                         </div>
-                        <div class="flex-grow-1 text-center">
-                            <div style="font-size:12px; color:#aaa; margin-bottom:4px;"><?= flightDuration($returnFlight['Flght_DepartDate'], $returnFlight['Flght_ArriveDate']) ?></div>
-                            <div style="height:2px; background:#FF7020; position:relative;">
-                                <span style="position:absolute;right:-4px;top:-9px;font-size:14px;color:#FF7020;"><i class="bi bi-airplane-fill"></i></span>
+                        <div style="flex:1; min-width:60px; text-align:center;">
+                            <div class="fs-dur"><?= flightDuration($returnFlight['Flght_DepartDate'], $returnFlight['Flght_ArriveDate']) ?></div>
+                            <div style="height:2px; background:var(--trip-orange); border-radius:2px; position:relative; margin:0 8px;">
+                                <i class="bi bi-airplane-fill fs-line-plane" style="color:var(--trip-orange);"></i>
                             </div>
-                            <div class="mt-1"><span class="badge badge-trip-orange" style="font-size:10px;">Return · Non-stop</span></div>
+                            <div class="fs-badge mt-2">Return · Non-stop</div>
                         </div>
                         <div class="text-center">
-                            <div class="fw-bold" style="font-size:22px;"><?= date('H:i', strtotime($returnFlight['Flght_ArriveDate'])) ?></div>
-                            <div style="font-size:12px; color:#aaa;"><?= $returnFlight['Flght_Arrival'] ?></div>
-                            <div style="font-size:11px; color:#aaa;"><?= htmlspecialchars(airportCity($returnFlight['Flght_Arrival'])) ?></div>
+                            <div class="fs-time"><?= date('H:i', strtotime($returnFlight['Flght_ArriveDate'])) ?></div>
+                            <div class="fs-iata"><?= $returnFlight['Flght_Arrival'] ?></div>
+                            <div class="fs-city"><?= htmlspecialchars(airportCity($returnFlight['Flght_Arrival'])) ?></div>
                         </div>
                     </div>
-                    <div class="text-end">
-                        <div style="font-size:11px; color:#aaa;"><?= date('D, d M Y', strtotime($returnFlight['Flght_DepartDate'])) ?></div>
-                        <span class="badge badge-trip-orange px-2 py-1"><?= classLabel($class) ?></span>
+                    <div class="text-end" style="min-width:100px;">
+                        <div style="font-size:11px; color:var(--trip-muted);"><?= date('D, d M Y', strtotime($returnFlight['Flght_DepartDate'])) ?></div>
+                        <span class="badge badge-trip-orange mt-1"><?= classLabel($class) ?></span>
                     </div>
                 </div>
             </div>
@@ -421,66 +532,64 @@ include '../layout/layout.php';
 
             <!-- Guest contact email -->
             <?php if ($isGuest): ?>
-            <div class="trip-card p-4 mb-3">
-                <h6 class="fw-bold mb-1">
-                    <i class="bi bi-envelope me-2" style="color:#0077EE;"></i>Contact Email
-                </h6>
-                <p class="text-muted mb-3" style="font-size:13px;">We'll send your booking confirmation here. Use this email to retrieve your booking later.</p>
+            <div class="pax-card mb-3">
+                <div class="pax-header">
+                    <div class="pax-num" style="background:#EFF6FF; color:var(--trip-blue);"><i class="bi bi-envelope-fill" style="font-size:11px;"></i></div>
+                    <div>
+                        <div class="pax-title">Contact Email</div>
+                        <div class="pax-sub">We'll send your booking confirmation here</div>
+                    </div>
+                </div>
                 <div class="mb-0">
-                    <label class="form-label fw-semibold" style="font-size:13px;">Email Address <span class="text-danger">*</span></label>
+                    <label class="form-label" style="font-size:13px; font-weight:600;">Email Address <span class="text-danger">*</span></label>
                     <input type="email" name="guest_email" class="form-control"
                            placeholder="you@email.com" required
                            value="<?= htmlspecialchars($_POST['guest_email'] ?? '') ?>">
                 </div>
-                <div style="margin-top:14px; background:#f0f8ff; border-radius:8px; padding:10px 14px; font-size:12px; color:#0077EE; display:flex; align-items:center; gap:8px;">
-                    <i class="bi bi-info-circle-fill"></i>
+                <div class="guest-info">
+                    <i class="bi bi-info-circle-fill" style="flex-shrink:0;"></i>
                     <span>Sign in or create a free account to earn <strong>Trip Coins</strong> and access membership benefits on every booking.</span>
                 </div>
             </div>
             <?php endif; ?>
 
             <!-- Passenger Details -->
+            <div class="section-label mt-2"><i class="bi bi-people" style="color:var(--trip-blue);"></i>Passenger Details</div>
             <?php for ($i = 1; $i <= $passengers; $i++): ?>
-            <div class="trip-card p-4 mb-3">
-                <h6 class="fw-bold mb-4">
-                    <i class="bi bi-person-circle me-2" style="color:#0077EE;"></i>
-                    Passenger <?= $i ?><?= $passengers > 1 ? " of $passengers" : '' ?>
-                    <span class="text-muted fw-normal" style="font-size:12px; margin-left:6px;">Details must match passport</span>
-                </h6>
-
+            <div class="pax-card mb-3">
+                <div class="pax-header">
+                    <div class="pax-num"><?= $i ?></div>
+                    <div>
+                        <div class="pax-title">Passenger <?= $i ?><?= $passengers > 1 ? " of $passengers" : '' ?></div>
+                        <div class="pax-sub">Details must match passport or government-issued ID</div>
+                    </div>
+                </div>
                 <div class="row g-3">
-                    <!-- Full Name -->
                     <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Full Name <span class="text-muted fw-normal">(as in passport)</span></label>
+                        <label class="form-label" style="font-size:13px; font-weight:600;">Full Name <span class="text-muted fw-normal">(as in passport)</span></label>
                         <input type="text" name="pax_<?= $i ?>_name" class="form-control"
                                placeholder="e.g. Juan Dela Cruz" required
                                value="<?= htmlspecialchars($_POST["pax_{$i}_name"] ?? '') ?>">
                     </div>
-
-                    <!-- Gender -->
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Gender <span class="text-muted fw-normal">(on passport)</span></label>
+                        <label class="form-label" style="font-size:13px; font-weight:600;">Gender</label>
                         <select name="pax_<?= $i ?>_gender" class="form-select" required>
                             <option value="" disabled <?= empty($_POST["pax_{$i}_gender"]) ? 'selected' : '' ?>>Select gender</option>
-                            <option value="Male"   <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Male'   ? 'selected' : '' ?>>Male</option>
-                            <option value="Female" <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+                            <option value="Male"        <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Male'        ? 'selected' : '' ?>>Male</option>
+                            <option value="Female"      <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Female'      ? 'selected' : '' ?>>Female</option>
                             <option value="Unspecified" <?= ($_POST["pax_{$i}_gender"] ?? '') === 'Unspecified' ? 'selected' : '' ?>>Unspecified / X</option>
                         </select>
                     </div>
-
-                    <!-- Date of Birth -->
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Date of Birth</label>
+                        <label class="form-label" style="font-size:13px; font-weight:600;">Date of Birth</label>
                         <input type="date" name="pax_<?= $i ?>_dob" class="form-control"
                                max="<?= date('Y-m-d', strtotime('-2 years')) ?>"
                                min="<?= date('Y-m-d', strtotime('-120 years')) ?>"
                                required
                                value="<?= htmlspecialchars($_POST["pax_{$i}_dob"] ?? '') ?>">
                     </div>
-
-                    <!-- Nationality -->
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Nationality</label>
+                        <label class="form-label" style="font-size:13px; font-weight:600;">Nationality</label>
                         <select name="pax_<?= $i ?>_nationality" class="form-select" required>
                             <option value="" disabled <?= empty($_POST["pax_{$i}_nationality"]) ? 'selected' : '' ?>>Select nationality</option>
                             <?php
@@ -522,16 +631,11 @@ include '../layout/layout.php';
             <?php endfor; ?>
 
             <!-- Payment -->
-            <div class="trip-card p-4 mb-4">
-                <h6 style="font-family:var(--font-serif); font-weight:600; font-size:16px; letter-spacing:-0.02em; margin-bottom:18px;">
-                    Payment Details
-                </h6>
-
-                <!-- Hidden field sent with form POST -->
+            <div class="section-label mt-2"><i class="bi bi-credit-card" style="color:var(--trip-blue);"></i>Payment Details</div>
+            <div class="payment-card mb-4">
                 <input type="hidden" name="pay_method" id="payMethodInput"
                        value="<?= htmlspecialchars($_POST['pay_method'] ?? 'Credit Card') ?>">
 
-                <!-- Method selector -->
                 <div class="pay-methods">
                     <button type="button" class="pay-btn <?= ($_POST['pay_method'] ?? 'Credit Card') === 'Credit Card' ? 'active' : '' ?>"
                             onclick="selectPayMethod('Credit Card', this)">
@@ -555,7 +659,7 @@ include '../layout/layout.php';
                     </button>
                 </div>
 
-                <!-- ── Credit / Debit Card fields ── -->
+                <!-- Credit / Debit Card -->
                 <div id="creds-card" class="cred-section <?= in_array($_POST['pay_method'] ?? 'Credit Card', ['Credit Card','Debit Card']) ? 'active' : '' ?>">
                     <div class="mb-3">
                         <label class="cred-label">Card Number</label>
@@ -598,7 +702,7 @@ include '../layout/layout.php';
                     </div>
                 </div>
 
-                <!-- ── GCash / Maya fields ── -->
+                <!-- GCash / Maya -->
                 <div id="creds-ewallet" class="cred-section <?= in_array($_POST['pay_method'] ?? '', ['GCash','Maya']) ? 'active' : '' ?>">
                     <div class="mb-3">
                         <label class="cred-label" id="ewalletLabel">GCash Mobile Number</label>
@@ -617,12 +721,12 @@ include '../layout/layout.php';
                                value="<?= htmlspecialchars($_POST['ewallet_name'] ?? '') ?>">
                     </div>
                     <div class="security-note">
-                        <i class="bi bi-shield-check" style="color:#1a9e5c;"></i>
+                        <i class="bi bi-shield-check" style="color:#15803D;"></i>
                         A payment confirmation will be sent to your registered mobile number.
                     </div>
                 </div>
 
-                <!-- ── Bank Transfer fields ── -->
+                <!-- Bank Transfer -->
                 <div id="creds-bank" class="cred-section <?= ($_POST['pay_method'] ?? '') === 'Bank Transfer' ? 'active' : '' ?>">
                     <div class="mb-3">
                         <label class="cred-label">Bank</label>
@@ -655,16 +759,18 @@ include '../layout/layout.php';
                     </div>
                 </div>
 
-                <!-- Promo Code (always visible) -->
-                <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--trip-border);">
+                <!-- Promo Code -->
+                <div class="promo-divider">
                     <label class="cred-label">Promo Code <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--trip-muted);">(optional)</span></label>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
                         <input type="text" name="promo_code" class="cred-input text-uppercase"
                                placeholder="e.g. TRIP10"
                                value="<?= htmlspecialchars($_POST['promo_code'] ?? '') ?>"
-                               style="max-width:220px; letter-spacing:0.05em;">
-                        <div style="font-size:12px; color:var(--trip-muted); line-height:1.4; display:flex; align-items:center;">
-                            Try: <strong style="color:var(--trip-text); margin-left:4px;">TRIP10 &nbsp;&middot;&nbsp; SUMMER500 &nbsp;&middot;&nbsp; FLYPH20</strong>
+                               style="max-width:200px; letter-spacing:.06em;">
+                        <div style="font-size:12px; color:var(--trip-muted);">
+                            Try: <strong style="color:var(--trip-text);">TRIP10</strong> &middot;
+                            <strong style="color:var(--trip-text);">SUMMER500</strong> &middot;
+                            <strong style="color:var(--trip-text);">FLYPH20</strong>
                         </div>
                     </div>
                 </div>
@@ -675,62 +781,58 @@ include '../layout/layout.php';
         <!-- RIGHT — Price Summary -->
         <div class="col-lg-4">
             <div class="dark-summary">
-                <h6>Price Summary</h6>
+                <div class="dark-summary-title">
+                    <i class="bi bi-receipt" style="color:var(--trip-orange);"></i>
+                    Price Summary
+                </div>
 
                 <?php if ($isRoundTrip): ?>
-                <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
-                    <span class="text-muted">Outbound (<?= $flight['Flght_Depart'] ?> → <?= $flight['Flght_Arrival'] ?>)</span>
+                <div class="sum-route"><?= $flight['Flght_Depart'] ?> → <?= $flight['Flght_Arrival'] ?> (Outbound)</div>
+                <div class="sum-row mb-3">
+                    <span class="lbl"><?= classLabel($class) ?> · per person</span>
+                    <span class="val">₱<?= number_format($outPricePerPax, 2) ?></span>
                 </div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
-                    <span class="text-muted"><?= classLabel($class) ?> · per person</span>
-                    <span>₱<?= number_format($outPricePerPax, 2) ?></span>
+                <div class="sum-route"><?= $returnFlight['Flght_Depart'] ?> → <?= $returnFlight['Flght_Arrival'] ?> (Return)</div>
+                <div class="sum-row mb-3">
+                    <span class="lbl"><?= classLabel($class) ?> · per person</span>
+                    <span class="val">₱<?= number_format($retPricePerPax, 2) ?></span>
                 </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
-                    <span class="text-muted">Return (<?= $returnFlight['Flght_Depart'] ?> → <?= $returnFlight['Flght_Arrival'] ?>)</span>
+                <div class="sum-row" style="border-top:1px dashed rgba(255,255,255,.10); padding-top:10px; margin-bottom:6px;">
+                    <span class="lbl">Per person (both legs)</span>
+                    <span class="val">₱<?= number_format($pricePerPax, 2) ?></span>
                 </div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
-                    <span class="text-muted"><?= classLabel($class) ?> · per person</span>
-                    <span>₱<?= number_format($retPricePerPax, 2) ?></span>
-                </div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:13px; border-top:1px dashed #ddd; padding-top:8px;">
-                    <span class="text-muted">Per person (both legs)</span>
-                    <span class="fw-semibold">₱<?= number_format($pricePerPax, 2) ?></span>
-                </div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
-                    <span class="text-muted"><?= $passengers ?> passenger<?= $passengers > 1 ? 's' : '' ?></span>
-                    <span>×<?= $passengers ?></span>
+                <div class="sum-row mb-2">
+                    <span class="lbl"><?= $passengers ?> passenger<?= $passengers > 1 ? 's' : '' ?></span>
+                    <span class="val">×<?= $passengers ?></span>
                 </div>
                 <?php else: ?>
-                <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
-                    <span class="text-muted"><?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?></span>
-                    <span><?= $passengers ?>×</span>
+                <div class="sum-route"><?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?></div>
+                <div class="sum-row mb-2">
+                    <span class="lbl"><?= classLabel($class) ?> · per person</span>
+                    <span class="val">₱<?= number_format($pricePerPax, 2) ?></span>
                 </div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:14px;">
-                    <span class="text-muted"><?= classLabel($class) ?> (per person)</span>
-                    <span>₱<?= number_format($pricePerPax, 2) ?></span>
+                <div class="sum-row mb-2">
+                    <span class="lbl">Passengers</span>
+                    <span class="val">×<?= $passengers ?></span>
                 </div>
                 <?php endif; ?>
 
-                <hr>
-                <div class="d-flex justify-content-between fw-bold mb-4">
-                    <span>Total</span>
-                    <span class="price-text" style="font-size:20px;">₱<?= number_format($totalPrice, 2) ?></span>
+                <div class="sum-total">
+                    <span class="lbl">Total</span>
+                    <span class="val">₱<?= number_format($totalPrice, 2) ?></span>
                 </div>
-                <p class="text-muted" style="font-size:12px; margin-top:-12px;">
-                    Promo discount (if any) applied on confirm.
-                </p>
+                <p class="sum-note">Promo discount (if any) applied on confirm.</p>
 
-                <div class="info-bar">
-                    <i class="bi bi-shield-check me-2"></i>Instant confirmation &middot; Free cancellation
+                <div class="sum-info-bar">
+                    <i class="bi bi-shield-check" style="color:#4ADE80;"></i>
+                    Instant confirmation &middot; Free cancellation
                 </div>
 
-                <button type="submit" name="confirm_booking" class="btn-trip-orange w-100 py-3" style="font-size:15px; border-radius:8px; font-weight:700;">
+                <button type="submit" name="confirm_booking" class="btn-trip-orange w-100 py-3" style="font-size:15px; border-radius:var(--radius-md); font-weight:700;">
                     <?= $isRoundTrip ? 'Confirm Round Trip' : 'Confirm Booking' ?>
                 </button>
 
-                <p style="color:rgba(255,255,255,0.38); text-align:center; margin-top:12px; margin-bottom:0; font-size:12px;">
-                    By confirming, you agree to our terms of service.
-                </p>
+                <p class="sum-terms">By confirming, you agree to our terms of service.</p>
             </div>
         </div>
 

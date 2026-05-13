@@ -73,45 +73,72 @@ $title = 'Manage Bookings';
 include '../layout/layout.php';
 ?>
 
+<style>
+.admin-page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+}
+.admin-page-title { font-family: var(--font-serif); font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: var(--trip-text); margin: 0; }
+.admin-back { font-size: 13px; color: var(--trip-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; }
+.admin-back:hover { text-decoration: underline; }
+.filter-pill {
+    padding: 6px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: all .15s;
+}
+</style>
+
 <div class="container py-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="admin-page-header">
         <div>
-            <h4 class="fw-bold mb-0">Manage Bookings</h4>
-            <a href="/admin/dashboard.php" style="font-size:13px; color:#0086FF;">← Back to Dashboard</a>
+            <h4 class="admin-page-title">Manage Bookings</h4>
+            <a href="/admin/dashboard.php" class="admin-back"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <?php foreach (['all'=>'All','confirmed'=>'Confirmed','cancelled'=>'Cancelled'] as $val => $lbl): ?>
+            <?php
+            $filterMeta = ['all'=>'All','confirmed'=>'Confirmed','cancelled'=>'Cancelled'];
+            foreach ($filterMeta as $val => $lbl):
+                $isActive = $statusFilter === $val;
+            ?>
                 <a href="?status=<?= $val ?>"
-                   class="btn btn-sm <?= $statusFilter === $val ? 'btn-trip' : 'btn-trip-outline' ?>"
-                   style="font-size:13px;"><?= $lbl ?></a>
+                   class="filter-pill <?= $isActive ? 'btn-trip' : 'btn-trip-outline' ?>">
+                    <?= $lbl ?>
+                </a>
             <?php endforeach; ?>
         </div>
     </div>
 
     <!-- Flash -->
     <?php if (!empty($_SESSION['flash'])): $fl = $_SESSION['flash']; unset($_SESSION['flash']); ?>
-        <div class="alert alert-<?= $fl['type'] ?> rounded-3 mb-3" style="font-size:14px;"><?= htmlspecialchars($fl['msg']) ?></div>
+        <div class="alert alert-<?= $fl['type'] ?> rounded-3 mb-3 d-flex align-items-center gap-2" style="font-size:14px;">
+            <i class="bi bi-<?= $fl['type'] === 'success' ? 'check-circle' : ($fl['type'] === 'danger' ? 'exclamation-circle' : 'exclamation-triangle') ?>"></i>
+            <?= htmlspecialchars($fl['msg']) ?>
+        </div>
     <?php endif; ?>
 
     <div class="trip-card p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <span style="font-size:13px; color:#6B6B6B;"><?= count($bookings) ?> booking<?= count($bookings) != 1 ? 's' : '' ?> found</span>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div style="font-size:15px; font-weight:700; color:var(--trip-text);">
+                <?= ucfirst($statusFilter === 'all' ? 'All' : $statusFilter) ?> Bookings
+            </div>
+            <div style="font-size:12px; color:var(--trip-muted);"><?= count($bookings) ?> record<?= count($bookings) !== 1 ? 's' : '' ?></div>
         </div>
 
         <?php if (empty($bookings)): ?>
-            <p class="text-muted text-center py-4" style="font-size:14px;">No bookings found.</p>
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox" style="font-size:40px; opacity:.15; display:block; margin-bottom:14px;"></i>
+                No bookings found for this filter.
+            </div>
         <?php else: ?>
         <div class="table-responsive">
             <table class="table trip-table mb-0">
                 <thead>
                     <tr>
-                        <th>Ref</th>
+                        <th>Reference</th>
                         <th>Passenger</th>
-                        <th>Email</th>
                         <th>Flight</th>
                         <th>Route</th>
-                        <th>Date</th>
+                        <th>Departure</th>
                         <th>Class</th>
                         <th>Pax</th>
                         <th>Total</th>
@@ -122,34 +149,36 @@ include '../layout/layout.php';
                 <tbody>
                     <?php foreach ($bookings as $b): ?>
                     <tr>
-                        <td class="fw-bold" style="font-size:12px; letter-spacing:1px; color:#003580;">
-                            <?= htmlspecialchars($b['Book_Confirm']) ?>
+                        <td>
+                            <div style="font-size:13px; font-weight:800; letter-spacing:1.5px; color:var(--trip-navy);"><?= htmlspecialchars($b['Book_Confirm']) ?></div>
+                            <div style="font-size:11px; color:var(--trip-muted);"><?= date('d M Y', strtotime($b['Book_Date'])) ?></div>
                         </td>
-                        <td style="font-size:13px;"><?= htmlspecialchars($b['User_Name']) ?></td>
-                        <td style="font-size:12px; color:#aaa;"><?= htmlspecialchars($b['User_Email']) ?></td>
-                        <td style="font-size:12px;">
-                            <span style="color:#0086FF; font-weight:700;"><?= $b['Airln_Code'] ?></span> <?= $b['Flght_No'] ?>
+                        <td>
+                            <div style="font-size:13px; font-weight:600; color:var(--trip-text);"><?= htmlspecialchars($b['User_Name']) ?></div>
+                            <div style="font-size:11px; color:var(--trip-muted);"><?= htmlspecialchars($b['User_Email']) ?></div>
                         </td>
-                        <td style="font-size:12px;">
-                            <?= $b['Flght_Depart'] ?> → <?= $b['Flght_Arrival'] ?>
+                        <td style="font-size:13px;">
+                            <span style="color:var(--trip-blue); font-weight:800;"><?= $b['Airln_Code'] ?></span>
+                            <span style="color:var(--trip-muted); font-size:11px; margin-left:3px;"><?= $b['Flght_No'] ?></span>
                         </td>
-                        <td style="font-size:12px; color:#555;"><?= date('d M Y H:i', strtotime($b['Flght_DepartDate'])) ?></td>
+                        <td style="font-size:13px; font-weight:600;"><?= $b['Flght_Depart'] ?> <span style="color:var(--trip-muted); font-weight:400;">→</span> <?= $b['Flght_Arrival'] ?></td>
+                        <td style="font-size:12px; color:var(--trip-muted);"><?= date('d M Y H:i', strtotime($b['Flght_DepartDate'])) ?></td>
                         <td style="font-size:12px;"><?= classLabel($b['Bokde_SeatClass']) ?></td>
-                        <td style="font-size:13px;"><?= $b['pax_count'] ?></td>
+                        <td style="font-size:13px; font-weight:600;"><?= $b['pax_count'] ?></td>
                         <td class="price-text fw-bold" style="font-size:13px;">₱<?= number_format($b['Book_Total'], 2) ?></td>
                         <td>
                             <?php $sc = match($b['Book_Status']) {
                                 'CONFIRMED'=>'badge-trip-green','CANCELLED'=>'badge-trip-red',default=>'badge-trip-orange'
                             }; ?>
-                            <span class="badge <?= $sc ?> px-2 py-1" style="font-size:11px;"><?= ucfirst(strtolower($b['Book_Status'])) ?></span>
+                            <span class="badge <?= $sc ?>" style="font-size:11px; padding:4px 9px;"><?= ucfirst(strtolower($b['Book_Status'])) ?></span>
                         </td>
                         <td>
                             <?php if ($b['Book_Status'] === 'CONFIRMED'): ?>
                                 <a href="?cancel=<?= $b['Book_ID'] ?>&status=<?= $statusFilter ?>"
                                    onclick="return confirm('Cancel booking <?= htmlspecialchars($b['Book_Confirm'], ENT_QUOTES) ?>?')"
-                                   class="btn btn-sm btn-outline-danger" style="font-size:12px;">Cancel</a>
+                                   class="btn btn-sm btn-outline-danger" style="font-size:12px; padding:4px 10px;">Cancel</a>
                             <?php else: ?>
-                                <span style="font-size:12px; color:#aaa;">—</span>
+                                <span style="font-size:12px; color:var(--trip-muted);">—</span>
                             <?php endif; ?>
                         </td>
                     </tr>

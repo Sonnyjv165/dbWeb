@@ -35,54 +35,132 @@ $title = 'Sign In';
 include '../layout/layout.php';
 ?>
 
-<div class="container py-5" style="max-width:440px;">
-    <div class="trip-card p-4 mt-3">
+<style>
+.auth-wrap {
+    min-height: calc(100dvh - 88px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+}
+.auth-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05);
+    padding: 44px 40px;
+    width: 100%;
+    max-width: 440px;
+}
+@media (max-width: 480px) {
+    .auth-card { padding: 32px 24px; border-radius: 16px; }
+}
+.auth-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: #EFF6FF;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 24px;
+    color: var(--trip-blue);
+}
+.auth-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--trip-text);
+    text-align: center;
+    margin-bottom: 6px;
+}
+.auth-sub {
+    font-size: 14px;
+    color: var(--trip-muted);
+    text-align: center;
+    margin-bottom: 32px;
+}
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--trip-text);
+    margin-bottom: 6px;
+}
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: var(--trip-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+}
+.demo-box {
+    background: var(--trip-bg);
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--trip-muted);
+    text-align: center;
+    margin-top: 16px;
+}
+</style>
 
-        <div class="text-center mb-4">
-            <div style="width:52px; height:52px; border-radius:14px; background:#e8f2fd; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:22px; color:var(--trip-blue);">
-                <i class="bi bi-airplane"></i>
-            </div>
-            <h4 style="font-family:var(--font-serif); font-weight:600; font-size:24px; letter-spacing:-0.02em; margin-bottom:4px;">Sign in to trip.com</h4>
-            <p class="text-muted" style="font-size:14px; margin:0;">Access your bookings and manage trips</p>
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <div class="auth-icon">
+            <i class="bi bi-airplane-fill"></i>
         </div>
+        <h4 class="auth-title">Sign in to trip.com</h4>
+        <p class="auth-sub">Access your bookings and manage trips</p>
 
         <?php if ($error): ?>
-            <div class="alert alert-danger rounded-3 py-2" style="font-size:14px;">
+            <div class="alert alert-danger py-2 mb-3">
                 <i class="bi bi-exclamation-circle me-2"></i><?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
 
         <form method="POST">
             <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:14px;">Email</label>
+                <label class="form-label">Email address</label>
                 <input type="email" name="email" class="form-control"
                        placeholder="you@email.com" required
                        value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:14px;">Password</label>
+                <label class="form-label">Password</label>
                 <div class="pwd-wrap">
                     <input type="password" name="password" id="loginPwd" class="form-control"
-                           placeholder="Enter password" required>
+                           placeholder="Enter your password" required>
                     <button type="button" class="pwd-reveal-btn" id="loginPwdBtn" title="Hold to reveal">
                         <i class="bi bi-eye"></i>
                     </button>
                 </div>
             </div>
-            <button type="submit" name="login" class="btn btn-trip w-100" style="padding:11px;">
+            <button type="submit" name="login" class="btn-trip w-100" style="padding:12px; font-size:15px; text-align:center; border-radius:var(--radius-md);">
                 Sign In
             </button>
         </form>
 
-        <hr class="my-3">
-        <p class="text-center mb-0" style="font-size:14px;">
+        <div class="auth-divider">or</div>
+
+        <p class="text-center mb-0" style="font-size:14px; color:var(--trip-muted);">
             Don't have an account?
-            <a href="/auth/register.php" style="color:#0086FF; font-weight:600;">Register</a>
+            <a href="/auth/register.php" style="color:var(--trip-blue); font-weight:600; text-decoration:none;">Create account</a>
         </p>
 
-        <p class="text-center mt-2 text-muted" style="font-size:12px;">
-            Demo: <strong>admin@trip.com</strong> or <strong>user@trip.com</strong> / <strong>password</strong>
-        </p>
+        <div class="demo-box">
+            <i class="bi bi-info-circle me-1"></i>
+            Demo: <strong style="color:var(--trip-text);">admin@trip.com</strong> or <strong style="color:var(--trip-text);">user@trip.com</strong> &nbsp;/&nbsp; <strong style="color:var(--trip-text);">password</strong>
+        </div>
+
     </div>
 </div>
 

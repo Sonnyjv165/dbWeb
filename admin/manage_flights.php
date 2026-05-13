@@ -101,12 +101,22 @@ $title = 'Manage Flights';
 include '../layout/layout.php';
 ?>
 
+<style>
+.admin-page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+}
+.admin-page-title { font-family: var(--font-serif); font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: var(--trip-text); margin: 0; }
+.admin-back { font-size: 13px; color: var(--trip-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; }
+.admin-back:hover { text-decoration: underline; }
+</style>
+
 <div class="container py-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="admin-page-header">
         <div>
-            <h4 class="fw-bold mb-0">Manage Flights</h4>
-            <a href="/admin/dashboard.php" style="font-size:13px; color:#0086FF;">← Back to Dashboard</a>
+            <h4 class="admin-page-title">Manage Flights</h4>
+            <a href="/admin/dashboard.php" class="admin-back"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
         </div>
         <button class="btn btn-trip" data-bs-toggle="modal" data-bs-target="#addFlightModal">
             <i class="bi bi-plus-circle me-2"></i>Add Flight
@@ -115,11 +125,18 @@ include '../layout/layout.php';
 
     <!-- Flash -->
     <?php if (!empty($_SESSION['flash'])): $f = $_SESSION['flash']; unset($_SESSION['flash']); ?>
-        <div class="alert alert-<?= $f['type'] ?> rounded-3 mb-3" style="font-size:14px;"><?= htmlspecialchars($f['msg']) ?></div>
+        <div class="alert alert-<?= $f['type'] ?> rounded-3 mb-3 d-flex align-items-center gap-2" style="font-size:14px;">
+            <i class="bi bi-<?= $f['type'] === 'success' ? 'check-circle' : ($f['type'] === 'danger' ? 'exclamation-circle' : 'exclamation-triangle') ?>"></i>
+            <?= htmlspecialchars($f['msg']) ?>
+        </div>
     <?php endif; ?>
 
     <!-- Flights Table -->
     <div class="trip-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div style="font-size:15px; font-weight:700; color:var(--trip-text);">All Flights</div>
+            <div style="font-size:12px; color:var(--trip-muted);"><?= count($flights) ?> flight<?= count($flights) !== 1 ? 's' : '' ?></div>
+        </div>
         <div class="table-responsive">
             <table class="table trip-table mb-0">
                 <thead>
@@ -129,7 +146,7 @@ include '../layout/layout.php';
                         <th>Departure</th>
                         <th>Arrival</th>
                         <th>Base Fare</th>
-                        <th>Seats Left</th>
+                        <th>Seats</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -138,36 +155,37 @@ include '../layout/layout.php';
                     <?php foreach ($flights as $fl): ?>
                     <tr>
                         <td>
-                            <div class="fw-bold" style="color:#0086FF;"><?= htmlspecialchars($fl['Airln_Code']) ?></div>
-                            <div style="font-size:12px; color:#aaa;"><?= htmlspecialchars($fl['Flght_No']) ?></div>
+                            <div style="font-size:15px; font-weight:800; color:var(--trip-blue); letter-spacing:-.3px;"><?= htmlspecialchars($fl['Airln_Code']) ?></div>
+                            <div style="font-size:11px; color:var(--trip-muted);"><?= htmlspecialchars($fl['Flght_No']) ?></div>
                         </td>
                         <td style="font-size:13px;">
-                            <?= htmlspecialchars(airportCity($fl['Flght_Depart'])) ?> (<?= $fl['Flght_Depart'] ?>) →
-                            <br><?= htmlspecialchars(airportCity($fl['Flght_Arrival'])) ?> (<?= $fl['Flght_Arrival'] ?>)
+                            <span style="font-weight:600;"><?= $fl['Flght_Depart'] ?></span> <span style="color:var(--trip-muted);"><?= htmlspecialchars(airportCity($fl['Flght_Depart'])) ?></span>
+                            <br>
+                            <span style="font-weight:600;"><?= $fl['Flght_Arrival'] ?></span> <span style="color:var(--trip-muted);"><?= htmlspecialchars(airportCity($fl['Flght_Arrival'])) ?></span>
                         </td>
-                        <td style="font-size:13px;"><?= date('d M Y H:i', strtotime($fl['Flght_DepartDate'])) ?></td>
-                        <td style="font-size:13px;"><?= date('d M Y H:i', strtotime($fl['Flght_ArriveDate'])) ?></td>
+                        <td style="font-size:13px;"><?= date('d M Y', strtotime($fl['Flght_DepartDate'])) ?><br><span style="color:var(--trip-muted); font-size:12px;"><?= date('H:i', strtotime($fl['Flght_DepartDate'])) ?></span></td>
+                        <td style="font-size:13px;"><?= date('d M Y', strtotime($fl['Flght_ArriveDate'])) ?><br><span style="color:var(--trip-muted); font-size:12px;"><?= date('H:i', strtotime($fl['Flght_ArriveDate'])) ?></span></td>
                         <td class="price-text fw-bold">₱<?= number_format($fl['Flght_Fare'], 0) ?></td>
-                        <td style="font-size:13px;"><?= $fl['Flght_SeatAvail'] ?> / <?= $fl['Flght_TotalSeats'] ?></td>
+                        <td style="font-size:13px; font-weight:600;"><?= $fl['Flght_SeatAvail'] ?><span style="color:var(--trip-muted); font-weight:400;"> / <?= $fl['Flght_TotalSeats'] ?></span></td>
                         <td>
                             <?php $sc = match($fl['Flght_Status']) {
                                 'SCHEDULED'=>'badge-trip-green','CANCELLED'=>'badge-trip-red',default=>'badge-trip-orange'
                             }; ?>
-                            <span class="badge <?= $sc ?> px-2 py-1" style="font-size:11px;"><?= ucfirst(strtolower($fl['Flght_Status'])) ?></span>
+                            <span class="badge <?= $sc ?>" style="font-size:11px; padding:4px 9px;"><?= ucfirst(strtolower($fl['Flght_Status'])) ?></span>
                         </td>
                         <td>
                             <div class="d-flex gap-1 flex-wrap">
-                                <button class="btn btn-sm btn-outline-primary" style="font-size:12px;"
+                                <button class="btn btn-sm btn-trip-outline" style="font-size:12px; padding:4px 12px;"
                                         onclick="openEditModal(<?= htmlspecialchars(json_encode($fl), ENT_QUOTES) ?>)">
                                     <i class="bi bi-pencil me-1"></i>Edit
                                 </button>
                                 <?php if ($fl['Flght_Status'] === 'SCHEDULED'): ?>
                                     <a href="?cancel=<?= $fl['Flght_ID'] ?>"
                                        onclick="return confirm('Cancel this flight? Active bookings will remain unaffected.')"
-                                       class="btn btn-sm btn-outline-danger" style="font-size:12px;">Cancel</a>
+                                       class="btn btn-sm btn-outline-danger" style="font-size:12px; padding:4px 10px;">Cancel</a>
                                 <?php else: ?>
                                     <a href="?restore=<?= $fl['Flght_ID'] ?>"
-                                       class="btn btn-sm btn-outline-success" style="font-size:12px;">Restore</a>
+                                       class="btn btn-sm btn-outline-success" style="font-size:12px; padding:4px 10px;">Restore</a>
                                 <?php endif; ?>
                             </div>
                         </td>

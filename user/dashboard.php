@@ -101,28 +101,76 @@ include '../layout/layout.php';
 /* ── Scroll-reveal ── */
 .reveal {
     opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.42s ease, transform 0.42s ease;
+    transform: translateY(24px);
+    transition: opacity 0.40s ease, transform 0.40s ease;
     transition-delay: var(--reveal-delay, 0s);
 }
-.reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-/* Faster exit so cards snap away cleanly on scroll-up */
-.reveal:not(.is-visible) {
-    transition-duration: 0.22s;
-    transition-delay: 0s;
-}
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+.reveal:not(.is-visible) { transition-duration: 0.20s; transition-delay: 0s; }
 
-/* Page-load fade for top elements that are immediately visible */
-.reveal-instant {
-    animation: revealSlideUp 0.5s ease both;
-}
+.reveal-instant { animation: revealSlideUp 0.48s ease both; }
 @keyframes revealSlideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Hero header card ── */
+.dash-hero {
+    background: linear-gradient(135deg, var(--trip-navy) 0%, #1a3a6a 100%);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    color: #fff;
+    position: relative; overflow: hidden;
+}
+.dash-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at top right, rgba(255,255,255,.06) 0%, transparent 60%);
+    pointer-events: none;
+}
+.dash-hero h4 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: #fff; margin-bottom: 4px; }
+.dash-hero .coins-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 999px; padding: 4px 14px; font-size: 13px; font-weight: 600; color: #fff;
+}
+.dash-hero .tier-link {
+    font-size: 12px; color: rgba(255,255,255,.65); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.dash-hero .tier-link:hover { color: #fff; }
+
+/* ── Filter tabs ── */
+.tab-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 18px; border-radius: 24px; font-size: 13px; font-weight: 600;
+    border: 1.5px solid var(--trip-border); background: #fff; color: var(--trip-muted);
+    cursor: pointer; transition: all .15s;
+}
+.tab-pill.active { background: var(--trip-blue); color: #fff; border-color: var(--trip-blue); box-shadow: 0 2px 10px rgba(0,119,238,.25); }
+.tab-pill .tab-count {
+    background: rgba(255,255,255,.25); border-radius: 20px;
+    padding: 0 7px; font-size: 11px;
+}
+.tab-pill:not(.active) .tab-count { background: #F0F0F0; color: #999; }
+
+/* ── Booking card ── */
+.booking-card {
+    background: #fff; border-radius: var(--radius-lg);
+    border: 1px solid var(--trip-border); box-shadow: var(--shadow-sm);
+    overflow: hidden; margin-bottom: 12px;
+    transition: box-shadow .15s, transform .15s;
+}
+.booking-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.bk-accent { width: 5px; flex-shrink: 0; }
+.bk-body { padding: 18px 22px; }
+.bk-ref-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--trip-muted); }
+.bk-ref-code  { font-size: 16px; font-weight: 800; letter-spacing: 2px; color: var(--trip-text); line-height: 1.2; }
+.bk-route     { font-size: 18px; font-weight: 800; color: var(--trip-text); letter-spacing: -.3px; }
+.bk-route-sub { font-size: 12px; color: var(--trip-muted); margin-top: 1px; }
+.bk-meta      { font-size: 13px; color: var(--trip-muted); display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.bk-price     { font-size: 20px; font-weight: 800; color: var(--trip-orange); letter-spacing: -.03em; }
 </style>
 
 <div class="container py-4">
@@ -131,25 +179,29 @@ include '../layout/layout.php';
     $loyaltyRow = $conn->query("SELECT User_Loyalty FROM user WHERE User_ID=$userId")->fetch_assoc();
     $userCoins  = (int)($loyaltyRow['User_Loyalty'] ?? 0);
     $tierNames  = [[20000,'Black Diamond'],[10000,'Diamond+'],[5000,'Diamond'],[2000,'Platinum'],[500,'Gold'],[0,'Silver']];
+    $tierIcons  = ['Black Diamond'=>'bi-gem','Diamond+'=>'bi-gem','Diamond'=>'bi-gem','Platinum'=>'bi-award','Gold'=>'bi-star-fill','Silver'=>'bi-star-half'];
     $userTier   = 'Silver';
     foreach ($tierNames as [$t,$n]) { if ($userCoins >= $t) { $userTier = $n; break; } }
     ?>
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 reveal-instant">
-        <div>
-            <h4 class="fw-bold mb-0">My Bookings</h4>
-            <p class="text-muted mb-0" style="font-size:14px;">
-                Welcome back, <?= htmlspecialchars($_SESSION['user_name']) ?>
-                &nbsp;·&nbsp;
-                <span style="color:#FF7020; font-weight:600;">
-                    <i class="bi bi-coin me-1"></i><?= number_format($userCoins) ?> Trip Coins
-                </span>
-                &nbsp;·&nbsp;
-                <a href="/user/profile.php" style="color:#0086FF; font-size:13px;"><?= $userTier ?> member ›</a>
-            </p>
+    <div class="dash-hero reveal-instant">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h4>Welcome back, <?= htmlspecialchars($_SESSION['user_name']) ?></h4>
+                <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+                    <span class="coins-pill">
+                        <i class="bi bi-coin" style="color:var(--trip-orange);"></i>
+                        <?= number_format($userCoins) ?> Trip Coins
+                    </span>
+                    <a href="/user/profile.php" class="tier-link">
+                        <i class="bi <?= $tierIcons[$userTier] ?>" style="color:var(--trip-orange);"></i>
+                        <?= $userTier ?> Member ›
+                    </a>
+                </div>
+            </div>
+            <a href="/index.php" class="btn btn-trip-orange px-4">
+                <i class="bi bi-airplane me-2"></i>Book a Flight
+            </a>
         </div>
-        <a href="/index.php" class="btn btn-trip-orange px-4">
-            <i class="bi bi-airplane me-2"></i>Book a Flight
-        </a>
     </div>
 
     <!-- Flash messages -->
@@ -168,13 +220,7 @@ include '../layout/layout.php';
 
     <?php if (!empty($myBookings)): ?>
     <!-- Filter Tabs -->
-    <div class="d-flex gap-2 mb-4 flex-wrap reveal-instant" style="animation-delay:0.08s;" id="bookingTabs">
-        <style>
-        .tab-pill { display:inline-flex; align-items:center; gap:6px; padding:7px 18px; border-radius:24px; font-size:13px; font-weight:600; border:1.5px solid #ddd; background:#fff; color:#6B6B6B; cursor:pointer; transition:all 0.15s; }
-        .tab-pill.active { background:#0086FF; color:#fff; border-color:#0086FF; }
-        .tab-pill .tab-count { background:rgba(255,255,255,0.25); border-radius:20px; padding:0 7px; font-size:11px; }
-        .tab-pill:not(.active) .tab-count { background:#f0f0f0; color:#999; }
-        </style>
+    <div class="d-flex gap-2 mb-4 flex-wrap reveal-instant" style="animation-delay:.08s;" id="bookingTabs">
         <button class="tab-pill active" onclick="filterBookings('all',this)">
             All <span class="tab-count"><?= $tabCounts['all'] ?></span>
         </button>
@@ -194,8 +240,8 @@ include '../layout/layout.php';
     <?php endif; ?>
 
     <?php if (empty($myBookings)): ?>
-        <div class="trip-card p-5 text-center text-muted reveal" style="--reveal-delay:0.05s;">
-            <div style="font-size:56px; opacity:.18; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
+        <div class="trip-card p-5 text-center text-muted reveal" style="--reveal-delay:.05s;">
+            <div style="font-size:56px; opacity:.15; color:var(--trip-text);"><i class="bi bi-airplane"></i></div>
             <h5 class="mt-3">No bookings yet</h5>
             <p style="font-size:14px;">Search and book your first flight to get started.</p>
             <a href="/index.php" class="btn btn-trip mt-2">Search Flights</a>
@@ -208,33 +254,39 @@ include '../layout/layout.php';
                 'CANCELLED' => 'badge-trip-red',
                 default     => 'badge-trip-orange',
             };
+            $accentColor = match($b['Book_Status']) {
+                'CONFIRMED' => '#16A34A',
+                'CANCELLED' => '#DC2626',
+                default     => 'var(--trip-orange)',
+            };
             $isPast = strtotime($b['Flght_DepartDate']) < time();
             $fromCity = airportCity($b['Flght_Depart']);
             $toCity   = airportCity($b['Flght_Arrival']);
             $bookingCategory = $b['Book_Status'] === 'CANCELLED' ? 'cancelled' : ($isPast ? 'completed' : 'upcoming');
             $stagger = round(min(($bi - 1) * 0.07, 0.28), 2);
         ?>
-        <div class="trip-card mb-3 p-0 overflow-hidden booking-card reveal"
+        <div class="booking-card reveal"
              data-category="<?= $bookingCategory ?>"
              style="--reveal-delay:<?= $stagger ?>s;">
-            <div class="row g-0">
-                <div class="col-auto" style="width:6px; background:<?= $b['Book_Status'] === 'CONFIRMED' ? '#1a9e5c' : ($b['Book_Status'] === 'CANCELLED' ? '#d93025' : '#FF7020') ?>;"></div>
-                <div class="col p-4">
+            <div class="d-flex">
+                <div class="bk-accent" style="background:<?= $accentColor ?>;"></div>
+                <div class="bk-body flex-grow-1">
                     <div class="row align-items-center g-3">
 
+                        <!-- Route -->
                         <div class="col-md-4">
                             <div class="d-flex align-items-center gap-3">
-                                <div style="font-size:24px; font-weight:800; color:#0086FF;">
+                                <div style="font-size:20px; font-weight:800; color:var(--trip-blue); min-width:44px;">
                                     <?= htmlspecialchars($b['Airln_Code']) ?>
                                 </div>
                                 <div>
-                                    <div class="fw-bold" style="font-size:16px;">
+                                    <div class="bk-route">
                                         <?= htmlspecialchars($fromCity) ?> → <?= htmlspecialchars($toCity) ?>
                                         <?php if (($b['leg_count'] ?? 1) > 1): ?>
-                                            <span class="badge badge-trip-orange ms-1 px-2" style="font-size:10px; vertical-align:middle;">Round Trip</span>
+                                            <span class="badge badge-trip-orange ms-1" style="font-size:10px; vertical-align:middle; padding:2px 7px;">RT</span>
                                         <?php endif; ?>
                                     </div>
-                                    <div class="text-muted" style="font-size:12px;">
+                                    <div class="bk-route-sub">
                                         <?= $b['Flght_Depart'] ?> → <?= $b['Flght_Arrival'] ?>
                                         &nbsp;·&nbsp;<?= htmlspecialchars($b['Flght_No']) ?>
                                     </div>
@@ -242,41 +294,39 @@ include '../layout/layout.php';
                             </div>
                         </div>
 
+                        <!-- Date/time -->
                         <div class="col-md-3">
-                            <div style="font-size:14px;">
-                                <i class="bi bi-calendar3 me-1 text-muted"></i>
+                            <div style="font-size:14px; font-weight:600; color:var(--trip-text);">
+                                <i class="bi bi-calendar3 me-1" style="color:var(--trip-muted);"></i>
                                 <?= date('D, d M Y', strtotime($b['Flght_DepartDate'])) ?>
                             </div>
-                            <div style="font-size:13px;" class="text-muted mt-1">
-                                <?= date('H:i', strtotime($b['Flght_DepartDate'])) ?> →
-                                <?= date('H:i', strtotime($b['Flght_ArriveDate'])) ?>
-                                &nbsp;·&nbsp;<?= classLabel($b['Bokde_SeatClass']) ?>
-                                &nbsp;·&nbsp;<?= $b['pax_count'] ?> pax
+                            <div class="bk-meta" style="margin-top:4px;">
+                                <span><?= date('H:i', strtotime($b['Flght_DepartDate'])) ?> → <?= date('H:i', strtotime($b['Flght_ArriveDate'])) ?></span>
+                                <span><?= classLabel($b['Bokde_SeatClass']) ?></span>
+                                <span><?= $b['pax_count'] ?> pax</span>
                             </div>
                         </div>
 
+                        <!-- Ref + status -->
                         <div class="col-md-2">
-                            <div style="font-size:12px; color:#aaa; text-transform:uppercase; letter-spacing:.5px;">Ref</div>
-                            <div class="fw-bold" style="font-size:15px; letter-spacing:1px;">
-                                <?= htmlspecialchars($b['Book_Confirm']) ?>
-                            </div>
-                            <span class="badge <?= $statusClass ?> mt-1 px-2 py-1" style="font-size:11px;">
+                            <div class="bk-ref-label">Ref</div>
+                            <div class="bk-ref-code"><?= htmlspecialchars($b['Book_Confirm']) ?></div>
+                            <span class="badge <?= $statusClass ?> mt-1" style="font-size:11px; padding:3px 8px;">
                                 <?= ucfirst(strtolower($b['Book_Status'])) ?>
                             </span>
                         </div>
 
+                        <!-- Price + actions -->
                         <div class="col-md-3 text-end">
-                            <div class="price-text fw-bold" style="font-size:20px;">
-                                ₱<?= number_format($b['Book_Total'], 2) ?>
-                            </div>
+                            <div class="bk-price">₱<?= number_format($b['Book_Total'], 2) ?></div>
                             <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
                                 <a href="/flights/confirmation.php?ref=<?= urlencode($b['Book_Confirm']) ?>"
-                                   class="btn btn-sm btn-trip" style="font-size:12px;">View</a>
+                                   class="btn btn-sm btn-trip" style="font-size:12px; padding:5px 14px;">View</a>
                                 <?php if ($b['Book_Status'] === 'CONFIRMED' && !$isPast): ?>
                                     <form method="POST" onsubmit="return confirm('Cancel this booking?')">
                                         <input type="hidden" name="booking_id" value="<?= $b['Book_ID'] ?>">
                                         <button type="submit" name="cancel_booking"
-                                                class="btn btn-sm btn-outline-danger" style="font-size:12px;">
+                                                class="btn btn-sm btn-outline-danger" style="font-size:12px; padding:5px 14px;">
                                             Cancel
                                         </button>
                                     </form>
