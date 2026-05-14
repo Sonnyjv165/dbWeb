@@ -11,7 +11,9 @@ $error   = '';
 $success = '';
 
 if (isset($_POST['register'])) {
-    $name     = trim($_POST['name']);
+    $firstName = trim($_POST['first_name']);
+    $lastName  = trim($_POST['last_name']);
+    $name      = $firstName . ' ' . $lastName;
     $email    = trim($_POST['email']);
     $phone    = trim($_POST['phone']);
     $password = $_POST['password'];
@@ -145,10 +147,17 @@ include '../layout/layout.php';
         <?php endif; ?>
 
         <form method="POST">
-            <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" name="name" class="form-control" placeholder="Your full name" required
-                       value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-control" placeholder="First name" required
+                           value="<?= htmlspecialchars($_POST['first_name'] ?? '') ?>">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-control" placeholder="Last name" required
+                           value="<?= htmlspecialchars($_POST['last_name'] ?? '') ?>">
+                </div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Email address</label>

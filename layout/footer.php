@@ -151,44 +151,6 @@
         </div>
     </div>
 
-    <!-- Developer Card -->
-    <div style="border-top:1px solid rgba(0,0,0,0.05); padding:48px 0 40px;">
-        <div class="container">
-            <div style="font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#C0C4CC; margin-bottom:24px; text-align:center;">About the Developer</div>
-            <div style="max-width:700px; margin:0 auto; background:var(--trip-bg); border:1px solid rgba(0,0,0,0.06); border-radius:18px; padding:32px; display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;">
-
-                <!-- Photo -->
-                <div style="flex-shrink:0;">
-                    <img src="/assets/nash.jpg" alt="Nash T. Riobuya"
-                         style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
-                </div>
-
-                <!-- Info -->
-                <div style="flex:1; min-width:200px;">
-                    <div style="font-family:var(--font-serif); font-size:20px; font-weight:600; letter-spacing:-0.02em; color:#111; margin-bottom:4px;">Nash T. Riobuya</div>
-                    <div style="font-size:13px; color:var(--trip-muted); margin-bottom:2px; display:flex; align-items:center; gap:6px;">
-                        <i class="bi bi-mortarboard-fill" style="color:var(--trip-blue);"></i>BSIT &mdash; 3A &nbsp;&middot;&nbsp; 3rd Year
-                    </div>
-                    <div style="font-size:13px; color:var(--trip-muted); margin-bottom:14px; display:flex; align-items:center; gap:6px;">
-                        <i class="bi bi-building" style="color:var(--trip-blue);"></i>University of Cebu
-                    </div>
-                    <div style="font-size:13px; color:#555; line-height:1.65; margin-bottom:18px;">
-                        Passionate about making games, web development, and Android application creation.
-                    </div>
-
-                    <!-- Quote -->
-                    <div style="border-left:3px solid var(--trip-orange); padding-left:14px;">
-                        <div style="font-family:var(--font-serif); font-style:italic; font-size:13px; color:#555; line-height:1.75;">
-                            "Computer science education cannot make anybody an expert programmer any more than studying brushes and pigment can make somebody an expert painter."
-                        </div>
-                        <div style="font-size:11px; font-weight:700; color:var(--trip-muted); margin-top:8px; letter-spacing:0.05em;">— Eric S. Raymond</div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
     <!-- Bottom bar -->
     <div style="border-top:1px solid rgba(0,0,0,0.05); padding:16px 0;">
         <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">

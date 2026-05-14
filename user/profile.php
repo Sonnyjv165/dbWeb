@@ -19,13 +19,15 @@ $error   = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (isset($_POST['update_profile'])) {
-        $name        = trim($_POST['name'] ?? '');
+        $firstName   = trim($_POST['first_name'] ?? '');
+        $lastName    = trim($_POST['last_name'] ?? '');
+        $name        = $firstName . ' ' . $lastName;
         $phone       = trim($_POST['phone'] ?? '');
         $nationality = trim($_POST['nationality'] ?? '');
         $dob         = $_POST['dob'] ?? '';
 
-        if ($name === '') {
-            $error = 'Full name cannot be empty.';
+        if ($firstName === '' || $lastName === '') {
+            $error = 'First name and last name cannot be empty.';
         } else {
             $st = $conn->prepare("
                 UPDATE user SET User_Name=?, User_PhoneNo=?, User_Nationality=?, User_DOB=?
@@ -432,10 +434,15 @@ include '../layout/layout.php';
         <div class="section-label">Edit Profile</div>
         <form method="POST">
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold" style="font-size:13px;">Full Name</label>
-                    <input type="text" name="name" class="form-control"
-                           value="<?= htmlspecialchars($user['User_Name']) ?>" required>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold" style="font-size:13px;">First Name</label>
+                    <input type="text" name="first_name" class="form-control"
+                           value="<?= htmlspecialchars(explode(' ', $user['User_Name'], 2)[0]) ?>" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold" style="font-size:13px;">Last Name</label>
+                    <input type="text" name="last_name" class="form-control"
+                           value="<?= htmlspecialchars(explode(' ', $user['User_Name'], 2)[1] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:13px;">Phone Number</label>
@@ -463,7 +470,7 @@ include '../layout/layout.php';
                 <div class="col-12">
                     <div class="p-3 rounded-3" style="background:#fff8f0; font-size:13px; color:#FF7020; border:1px solid #ffe5cc;">
                         <i class="bi bi-info-circle me-2"></i>
-                        Your <strong>Full Name</strong> must exactly match the name on your government-issued ID or passport, as it is used for all flight bookings.
+                        Your <strong>First and Last Name</strong> must exactly match the name on your government-issued ID or passport, as it is used for all flight bookings.
                     </div>
                 </div>
             </div>
